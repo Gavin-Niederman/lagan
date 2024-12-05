@@ -1,0 +1,8 @@
+[package]
+name = "plume"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dioxus = { version = "0.5.6", default-features = false, features = ["macro", "hooks"] }
+freya = "0.2.2"
