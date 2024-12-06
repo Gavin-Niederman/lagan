@@ -15,7 +15,7 @@ fn main() {
         let mut data = ();
         NT_AddLogger(inst, 0, u32::MAX, (&raw mut data).cast(), log_cb);
 
-        let mut persist_name: WPI_String = "networktables.json".into();
+        let mut persist_name: WPI_String = c"networktables.json".into();
         NT_StartServer(
             inst,
             &raw mut persist_name,
@@ -27,7 +27,7 @@ fn main() {
         // Who knows
         sleep(Duration::from_secs(1));
 
-        let mut name: WPI_String = "/foo".into();
+        let mut name: WPI_String = c"/foo".into();
         let foo = NT_GetEntry(inst, &raw mut name);
         let val = NT_Value {
             r#type: NT_Type::NT_DOUBLE,

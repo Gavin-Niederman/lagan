@@ -1,6 +1,6 @@
 #![allow(non_camel_case_types, non_snake_case)]
 
-use std::fmt::Debug;
+use std::{ffi::CStr, fmt::Debug};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, Hash)]
@@ -9,11 +9,11 @@ pub struct WPI_String {
     pub len: usize,
 }
 
-impl From<&str> for WPI_String {
-    fn from(s: &str) -> Self {
+impl From<&CStr> for WPI_String {
+    fn from(s: &CStr) -> Self {
         Self {
             str: s.as_ptr() as *const std::ffi::c_char,
-            len: s.len(),
+            len: s.count_bytes(),
         }
     }
 }
