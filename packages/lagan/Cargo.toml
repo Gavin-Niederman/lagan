@@ -1,0 +1,9 @@
+[package]
+name = "lagan"
+authors = ["Gavin Niederman <gavinniederman@gmail.com>"]
+description = "Safe bindings for ntcore"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libntcore = { path = "../libntcore", version = "0.1.0" }
