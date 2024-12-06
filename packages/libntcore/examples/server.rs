@@ -36,7 +36,7 @@ fn main() {
             data: NT_ValueData { v_double: 3.14 },
         };
         NT_SetEntryValue(foo, &raw const val);
-        NT_SetEntryFlags(foo, NT_EntryFlags::NT_PERSISTENT.bits());
+        NT_SetEntryFlags(foo, NT_EntryFlags::NT_PERSISTENT);
         loop {
             sleep(Duration::from_secs(1));
         }
