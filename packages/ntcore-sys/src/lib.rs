@@ -5,8 +5,17 @@ use std::fmt::Debug;
 #[repr(C)]
 #[derive(Debug, Copy, Clone, Hash)]
 pub struct WPI_String {
-    str: *const std::ffi::c_char,
-    len: usize,
+    pub str: *const std::ffi::c_char,
+    pub len: usize,
+}
+
+impl From<&str> for WPI_String {
+    fn from(s: &str) -> Self {
+        Self {
+            str: s.as_ptr() as *const std::ffi::c_char,
+            len: s.len(),
+        }
+    }
 }
 
 pub type WPI_DataLog = std::ffi::c_void;
