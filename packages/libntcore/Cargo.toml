@@ -1,5 +1,10 @@
 [package]
 name = "libntcore"
+authors = ["Gavin Niederman <gavinniederman@gmail.com>"]
+description = "Raw Rust bindings to ntcore"
+keywords = ["ntcore", "networktables", "frc", "wpilib"]
+categories = ["api-bindings", "external-ffi-bindings", "network-programming"]
+license = "MIT"
 version = "0.1.0"
 edition = "2021"
 
