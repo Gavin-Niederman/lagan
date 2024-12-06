@@ -46,7 +46,7 @@ macro_rules! c_enum {
         $($(#[$memmeta:meta])* $var:ident = $val:expr),+ $(,)?
     })+} => {
         $(
-            #[repr(C)]
+            #[repr(transparent)]
             #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
             $(#[$meta])*
             $vis struct $name($type);
@@ -479,18 +479,18 @@ extern "C" {
     /// Note that one of the type options is "unassigned".
     ///
     /// # Parameters
-    /// 
+    ///
     /// - entry: entry handle
     /// - types: bitmask of NT_Type values; 0 is treated specially
     ///   as a "don't care"
     /// - value: storage for returned entry value
-    /// 
+    ///
     /// # Note
     ///
     /// It is the caller's responsibility to free value once it's no longer
     /// needed (the utility function NT_DisposeValue() is useful for this
     /// purpose).
-    pub fn NT_GetEntryValueType(entry: NT_Entry, types: u32, value: *mut NT_Value);
+    pub fn NT_GetEntryValueType(entry: NT_Entry, types: NT_Type, value: *mut NT_Value);
 
     /// Set Default Entry Value.
     ///
@@ -499,12 +499,12 @@ extern "C" {
     /// Note that one of the type options is "unassigned".
     ///
     /// # Parameters
-    /// 
+    ///
     /// - entry: entry handle
     /// - default_value: value to be set if name does not exist
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// 0 on error (value not set), 1 on success
     pub fn NT_SetDefaultEntryValue(entry: NT_Entry, default_value: *const NT_Value) -> NT_Bool;
 
@@ -514,76 +514,88 @@ extern "C" {
     /// currently stored entry, returns error and does not update value.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - entry: entry handle
     /// - value: new entry value
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// 0 on error (type mismatch), 1 on success
     pub fn NT_SetEntryValue(entry: NT_Entry, value: *const NT_Value) -> NT_Bool;
 
     /// Set Entry Flags.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - entry: entry handle
     /// - flags: flags value (bitmask of NT_EntryFlags)
-    pub fn NT_SetEntryFlags(entry: NT_Entry, flags: u32);
+    pub fn NT_SetEntryFlags(entry: NT_Entry, flags: NT_EntryFlags);
 
-    /**
-     * Get Entry Flags.
-     *
-     * @param entry     entry handle
-     * @return Flags value (bitmask of NT_EntryFlags)
-     */
-    pub fn NT_GetEntryFlags(entry: NT_Entry) -> u32;
+    /// Get Entry Flags.
+    ///
+    /// # Parameters
+    ///
+    /// - entry: entry handle
+    ///
+    /// # Returns
+    ///
+    /// Flags value (bitmask of NT_EntryFlags)
+    pub fn NT_GetEntryFlags(entry: NT_Entry) -> NT_EntryFlags;
 
-    /**
-     * Read Entry Queue.
-     *
-     * Returns new entry values since last call. The returned array must be freed
-     * using NT_DisposeValueArray().
-     *
-     * @param subentry     subscriber or entry handle
-     * @param count        count of items in returned array (output)
-     * @return entry value array; returns NULL and count=0 if no new values
-     */
+    /// Read Entry Queue.
+    ///
+    /// Returns new entry values since last call. The returned array must be freed
+    /// using NT_DisposeValueArray().
+    ///
+    /// # Parameters
+    ///
+    /// - subentry: subscriber or entry handle
+    /// - count: count of items in returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// entry value array; returns NULL and count=0 if no new values
     pub fn NT_ReadQueueValue(subentry: NT_Handle, count: *mut isize) -> *mut NT_Value;
 
-    /**
-     * Read Entry Queue.
-     *
-     * Returns new entry values since last call. The returned array must be freed
-     * using NT_DisposeValueArray().
-     *
-     * @param subentry     subscriber or entry handle
-     * @param types        bitmask of NT_Type values; 0 is treated specially
-     *                     as a "don't care"
-     * @param count        count of items in returned array (output)
-     * @return entry value array; returns NULL and count=0 if no new values
-     */
+    /// Read Entry Queue.
+    ///
+    /// Returns new entry values since last call. The returned array must be freed
+    /// using NT_DisposeValueArray().
+    ///
+    /// # Parameters
+    ///
+    /// - subentry: subscriber or entry handle
+    /// - types: bitmask of NT_Type values; 0 is treated specially
+    ///   as a "don't care"
+    /// - count: count of items in returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// entry value array; returns NULL and count=0 if no new values
     pub fn NT_ReadQueueValueType(
         subentry: NT_Handle,
         types: u32,
         count: *mut isize,
     ) -> *mut NT_Value;
 
-    /**
-     * Get Published Topic Handles.
-     *
-     * Returns an array of topic handles.  The results are optionally
-     * filtered by string prefix and type to only return a subset of all
-     * topics.
-     *
-     * @param inst          instance handle
-     * @param prefix        name required prefix; only topics whose name
-     *                      starts with this string are returned
-     * @param types         bitmask of NT_Type values; 0 is treated specially
-     *                      as a "don't care"
-     * @param count         output parameter; set to length of returned array
-     * @return Array of topic handles.
-     */
+    /// Get Published Topic Handles.
+    ///
+    /// Returns an array of topic handles.  The results are optionally
+    /// filtered by string prefix and type to only return a subset of all
+    /// topics.
+    ///
+    /// # Parameters
+    ///
+    /// - inst: instance handle
+    /// - prefix: name required prefix; only topics whose name
+    ///   starts with this string are returned
+    /// - types: bitmask of NT_Type values; 0 is treated specially
+    ///   as a "don't care"
+    /// - count: output parameter; set to length of returned array
+    ///
+    /// # Returns
+    ///
+    /// Array of topic handles.
     pub fn NT_GetTopics(
         inst: NT_Inst,
         prefix: *const WPI_String,
@@ -591,21 +603,24 @@ extern "C" {
         count: *mut isize,
     ) -> *mut NT_Topic;
 
-    /**
-     * Get Published Topic Handles.
-     *
-     * Returns an array of topic handles.  The results are optionally
-     * filtered by string prefix and type to only return a subset of all
-     * topics.
-     *
-     * @param inst          instance handle
-     * @param prefix        name required prefix; only topics whose name
-     *                      starts with this string are returned
-     * @param types         array of type strings
-     * @param types_len     number of elements in types array
-     * @param count         output parameter; set to length of returned array
-     * @return Array of topic handles.
-     */
+    /// Get Published Topic Handles.
+    ///
+    /// Returns an array of topic handles.  The results are optionally
+    /// filtered by string prefix and type to only return a subset of all
+    /// topics.
+    ///
+    /// # Parameters
+    ///
+    /// - inst: instance handle
+    /// - prefix: name required prefix; only topics whose name
+    ///   starts with this string are returned
+    /// - types: array of type strings
+    /// - types_len: number of elements in types array
+    /// - count: output parameter; set to length of returned array
+    ///
+    /// # Returns
+    ///
+    /// Array of topic handles.
     pub fn NT_GetTopicsStr(
         inst: NT_Inst,
         prefix: *const WPI_String,
@@ -614,21 +629,24 @@ extern "C" {
         count: *mut isize,
     ) -> *mut NT_Topic;
 
-    /**
-     * Get Topics.
-     *
-     * Returns an array of topic information (handle, name, type).  The results are
-     * optionally filtered by string prefix and type to only return a subset
-     * of all topics.
-     *
-     * @param inst          instance handle
-     * @param prefix        name required prefix; only topics whose name
-     *                      starts with this string are returned
-     * @param types         bitmask of NT_Type values; 0 is treated specially
-     *                      as a "don't care"
-     * @param count         output parameter; set to length of returned array
-     * @return Array of topic information.
-     */
+    /// Get Topics.
+    ///
+    /// Returns an array of topic information (handle, name, type).  The results are
+    /// optionally filtered by string prefix and type to only return a subset
+    /// of all topics.
+    ///
+    /// # Parameters
+    ///
+    /// - inst: instance handle
+    /// - prefix: name required prefix; only topics whose name
+    ///   starts with this string are returned
+    /// - types: bitmask of NT_Type values; 0 is treated specially
+    ///   as a "don't care"
+    /// - count: output parameter; set to length of returned array
+    ///
+    /// # Returns
+    ///
+    /// Array of topic information.
     pub fn NT_GetTopicInfos(
         inst: NT_Inst,
         prefix: *const WPI_String,
@@ -636,21 +654,24 @@ extern "C" {
         count: *mut usize,
     ) -> *mut NT_TopicInfo;
 
-    /**
-     * Get Topics.
-     *
-     * Returns an array of topic information (handle, name, type).  The results are
-     * optionally filtered by string prefix and type to only return a subset
-     * of all topics.
-     *
-     * @param inst          instance handle
-     * @param prefix        name required prefix; only topics whose name
-     *                      starts with this string are returned
-     * @param types         array of type strings
-     * @param types_len     number of elements in types array
-     * @param count         output parameter; set to length of returned array
-     * @return Array of topic information.
-     */
+    /// Get Topics.
+    ///
+    /// Returns an array of topic information (handle, name, type).  The results are
+    /// optionally filtered by string prefix and type to only return a subset
+    /// of all topics.
+    ///
+    /// # Parameters
+    ///
+    /// - inst: instance handle
+    /// - prefix: name required prefix; only topics whose name
+    ///   starts with this string are returned
+    /// - types: array of type strings
+    /// - types_len: number of elements in types array
+    /// - count: output parameter; set to length of returned array
+    ///
+    /// # Returns
+    ///
+    /// Array of topic information.
     pub fn NT_GetTopicInfosStr(
         inst: NT_Inst,
         prefix: *const WPI_String,
@@ -659,174 +680,199 @@ extern "C" {
         count: *mut isize,
     ) -> *mut NT_TopicInfo;
 
-    /**
-     * Gets Topic Information.
-     *
-     * Returns information about a topic (name and type).
-     *
-     * @param topic         handle
-     * @param info          information (output)
-     * @return True if successful, false on error.
-     */
+    /// Gets Topic Information.
+    ///
+    /// Returns information about a topic (name and type).
+    ///
+    /// - topic: handle
+    /// - info: information (output)
+    ///
+    /// # Returns
+    ///
+    /// True if successful, false on error.
     pub fn NT_GetTopicInfo(topic: NT_Topic, info: *mut NT_TopicInfo) -> NT_Bool;
 
-    /**
-     * Gets Topic Handle.
-     *
-     * Returns topic handle.
-     *
-     * @param inst      instance handle
-     * @param name      topic name
-     * @return Topic handle.
-     */
+    /// Gets Topic Handle.
+    ///
+    /// Returns topic handle.
+    ///
+    /// # Parameters
+    ///
+    /// - inst: instance handle
+    /// - name: topic name
+    ///
+    /// # Returns
+    ///
+    /// Topic handle.
     pub fn NT_GetTopic(inst: NT_Inst, name: *const WPI_String) -> NT_Topic;
 
-    /**
-     * Gets the name of the specified topic.
-     *
-     * @param topic     topic handle
-     * @param name  topic name (output); return length of 0 and nullptr if
-     * handle is invalid.
-     */
+    /// Gets the name of the specified topic.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - name: topic name (output); return length of 0 and nullptr if
+    ///   handle is invalid.
     pub fn NT_GetTopicName(topic: NT_Topic, name: *mut WPI_String);
 
-    /**
-     * Gets the type for the specified topic, or unassigned if non existent.
-     *
-     * @param topic   topic handle
-     * @return Topic type
-     */
+    /// Gets the type for the specified topic, or unassigned if non existent.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    ///
+    /// # Returns
+    ///
+    /// Topic type
     pub fn NT_GetTopicType(topic: NT_Topic) -> NT_Type;
 
-    /**
-     * Gets the type string for the specified topic.  This may have more information
-     * than the numeric type (especially for raw values).
-     *
-     * @param topic topic handle
-     * @param type  topic type string (output)
-     */
+    /// Gets the type string for the specified topic.  This may have more information
+    /// than the numeric type (especially for raw values).
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - type: topic type string (output)
     pub fn NT_GetTopicTypeString(topic: NT_Topic, r#type: *mut WPI_String);
 
-    /**
-     * Sets the persistent property of a topic.  If true, the stored value is
-     * persistent through server restarts.
-     *
-     * @param topic topic handle
-     * @param value True for persistent, false for not persistent.
-     */
+    /// Sets the persistent property of a topic.  If true, the stored value is
+    /// persistent through server restarts.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - value: True for persistent, false for not persistent.
     pub fn NT_SetTopicPersistent(topic: NT_Topic, value: NT_Bool);
 
-    /**
-     * Gets the persistent property of a topic.
-     *
-     * @param topic topic handle
-     * @return persistent property value
-     */
+    /// Gets the persistent property of a topic.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    ///
+    /// # Returns
+    ///
+    /// persistent property value
     pub fn NT_GetTopicPersistent(topic: NT_Topic) -> NT_Bool;
 
-    /**
-     * Sets the retained property of a topic.  If true, the server retains the
-     * topic even when there are no publishers.
-     *
-     * @param topic topic handle
-     * @param value new retained property value
-     */
+    /// Sets the retained property of a topic.  If true, the server retains the
+    /// topic even when there are no publishers.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - value: new retained property value
     pub fn NT_SetTopicRetained(topic: NT_Topic, value: NT_Bool);
 
-    /**
-     * Gets the retained property of a topic.
-     *
-     * @param topic topic handle
-     * @return retained property value
-     */
+    /// Gets the retained property of a topic.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    ///
+    /// # Returns
+    ///
+    /// retained property value
     pub fn NT_GetTopicRetained(topic: NT_Topic) -> NT_Bool;
 
-    /**
-     * Sets the cached property of a topic.  If true, the server and clients will
-     * store the latest value, allowing the value to be read (and not just accessed
-     * through event queues and listeners).
-     *
-     * @param topic topic handle
-     * @param value True for cached, false for not cached
-     */
+    /// Sets the cached property of a topic.  If true, the server and clients will
+    /// store the latest value, allowing the value to be read (and not just accessed
+    /// through event queues and listeners).
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - value: True for cached, false for not cached
     pub fn NT_SetTopicCached(topic: NT_Topic, value: NT_Bool);
 
-    /**
-     * Gets the cached property of a topic.
-     *
-     * @param topic topic handle
-     * @return cached property value
-     */
+    /// Gets the cached property of a topic.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    ///
+    /// # Return
+    ///
+    /// cached property value
     pub fn NT_GetTopicCached(topic: NT_Topic) -> NT_Bool;
 
-    /**
-     * Determine if topic exists (e.g. has at least one publisher).
-     *
-     * @param handle Topic, entry, or subscriber handle.
-     * @return True if topic exists.
-     */
+    /// Determine if topic exists (e.g. has at least one publisher).
+    ///
+    /// # Parameters
+    ///
+    /// - handle: Topic, entry, or subscriber handle.
+    ///
+    /// # Returns
+    ///
+    /// True if topic exists.
     pub fn NT_GetTopicExists(handle: NT_Handle) -> NT_Bool;
 
-    /**
-     * Gets the current value of a property (as a JSON string).
-     *
-     * @param topic topic handle
-     * @param name property name
-     * @param property JSON string (output)
-     */
+    /// Gets the current value of a property (as a JSON string).
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - name: property name
+    /// - property: JSON string (output)
     pub fn NT_GetTopicProperty(topic: NT_Topic, name: *const WPI_String, property: *mut WPI_String);
 
-    /**
-     * Sets a property value.
-     *
-     * @param topic topic handle
-     * @param name property name
-     * @param value property value (JSON string)
-     */
+    /// Sets a property value.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - name: property name
+    /// - value: property value (JSON string)
     pub fn NT_SetTopicProperty(
         topic: NT_Topic,
         name: *const WPI_String,
         value: *const WPI_String,
     ) -> NT_Bool;
 
-    /**
-     * Deletes a property.  Has no effect if the property does not exist.
-     *
-     * @param topic topic handle
-     * @param name property name
-     */
+    /// Deletes a property.  Has no effect if the property does not exist.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - name: property name
     pub fn NT_DeleteTopicProperty(topic: NT_Topic, name: *const WPI_String);
 
-    /**
-     * Gets all topic properties as a JSON string.  Each key in the object
-     * is the property name, and the corresponding value is the property value.
-     *
-     * @param topic topic handle
-     * @param properties JSON string (output)
-     */
+    /// Gets all topic properties as a JSON string.  Each key in the object
+    /// is the property name, and the corresponding value is the property value.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - properties: JSON string (output)
     pub fn NT_GetTopicProperties(topic: NT_Topic, properties: *mut WPI_String);
 
-    /**
-     * Updates multiple topic properties.  Each key in the passed-in JSON object is
-     * the name of the property to add/update, and the corresponding value is the
-     * property value to set for that property.  Null values result in deletion
-     * of the corresponding property.
-     *
-     * @param topic topic handle
-     * @param properties JSON object string with keys to add/update/delete
-     * @return False if properties are not a valid JSON object
-     */
+    /// Updates multiple topic properties.  Each key in the passed-in JSON object is
+    /// the name of the property to add/update, and the corresponding value is the
+    /// property value to set for that property.  Null values result in deletion
+    /// of the corresponding property.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - properties: JSON object string with keys to add/update/delete
+    ///
+    /// # Returns
+    ///
+    /// False if properties are not a valid JSON object
     pub fn NT_SetTopicProperties(topic: NT_Topic, properties: *const WPI_String) -> NT_Bool;
 
-    /**
-     * Creates a new subscriber to value changes on a topic.
-     *
-     * @param topic topic handle
-     * @param type expected type
-     * @param typeStr expected type string
-     * @param options subscription options
-     * @return Subscriber handle
-     */
+    /// Creates a new subscriber to value changes on a topic.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - type: expected type
+    /// - typeStr: expected type string
+    /// - options: subscription options
+    ///
+    /// # Returns
+    ///
+    /// Subscriber handle
     pub fn NT_Subscribe(
         topic: NT_Topic,
         r#type: NT_Type,
@@ -834,22 +880,25 @@ extern "C" {
         options: *const NT_PubSubOptions,
     ) -> NT_Subscriber;
 
-    /**
-     * Stops subscriber.
-     *
-     * @param sub subscriber handle
-     */
+    /// Stops subscriber.
+    ///
+    /// # Returns
+    ///
+    /// sub subscriber handle
     pub fn NT_Unsubscribe(sub: NT_Subscriber);
 
-    /**
-     * Creates a new publisher to a topic.
-     *
-     * @param topic topic handle
-     * @param type type
-     * @param typeStr type string
-     * @param options publish options
-     * @return Publisher handle
-     */
+    /// Creates a new publisher to a topic.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - type: type
+    /// - typeStr: type string
+    /// - options: publish options
+    ///
+    /// # Returns
+    ///
+    /// Publisher handle
     pub fn NT_Publish(
         topic: NT_Topic,
         r#type: NT_Type,
@@ -857,16 +906,19 @@ extern "C" {
         options: *const NT_PubSubOptions,
     ) -> NT_Publisher;
 
-    /**
-     * Creates a new publisher to a topic.
-     *
-     * @param topic topic handle
-     * @param type type
-     * @param typeStr type string
-     * @param properties initial properties (JSON object)
-     * @param options publish options
-     * @return Publisher handle
-     */
+    /// Creates a new publisher to a topic.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - type: type
+    /// - typeStr: type string
+    /// - properties: initial properties (JSON object)
+    /// - options: publish options
+    ///
+    /// # Returns
+    ///
+    /// Publisher handle
     pub fn NT_PublishEx(
         topic: NT_Topic,
         r#type: NT_Type,
@@ -875,22 +927,25 @@ extern "C" {
         options: *const NT_PubSubOptions,
     ) -> NT_Publisher;
 
-    /**
-     * Stops publisher.
-     *
-     * @param pubentry publisher/entry handle
-     */
+    /// Stops publisher.
+    ///
+    /// # Parameters
+    ///
+    /// pubentry publisher/entry handle
     pub fn NT_Unpublish(pubentry: NT_Handle);
 
-    /**
-     * @brief Creates a new entry (subscriber and weak publisher) to a topic.
-     *
-     * @param topic topic handle
-     * @param type type
-     * @param typeStr type string
-     * @param options publish options
-     * @return Entry handle
-     */
+    /// Creates a new entry (subscriber and weak publisher) to a topic.
+    ///
+    /// # Parameters
+    ///
+    /// - topic: topic handle
+    /// - type: type
+    /// - typeStr: type string
+    /// - options: publish options
+    ///
+    /// # Returns
+    ///
+    /// Entry handle
     pub fn NT_GetEntryEx(
         topic: NT_Topic,
         r#type: NT_Type,
@@ -898,39 +953,45 @@ extern "C" {
         options: *const NT_PubSubOptions,
     ) -> NT_Entry;
 
-    /**
-     * Stops entry subscriber/publisher.
-     *
-     * @param entry entry handle
-     */
+    /// Stops entry subscriber/publisher.
+    ///
+    /// # Parameters
+    ///
+    /// - entry: entry handle
     pub fn NT_ReleaseEntry(entry: NT_Entry);
 
-    /**
-     * Stops entry/subscriber/publisher.
-     *
-     * @param pubsubentry entry/subscriber/publisher handle
-     */
+    /// Stops entry/subscriber/publisher.
+    ///
+    /// # Parameters
+    /// 
+    /// - pubsubentry: entry/subscriber/publisher handle
     pub fn NT_Release(pubsubentry: NT_Handle);
 
-    /**
-     * Gets the topic handle from an entry/subscriber/publisher handle.
-     *
-     * @param pubsubentry entry/subscriber/publisher handle
-     * @return Topic handle
-     */
+    /// Gets the topic handle from an entry/subscriber/publisher handle.
+    ///
+    /// # Parameters
+    /// 
+    /// - pubsubentry: entry/subscriber/publisher handle
+    /// 
+    /// # Returns
+    /// 
+    /// Topic handle
     pub fn NT_GetTopicFromHandle(pubsubentry: NT_Handle) -> NT_Topic;
 
-    /**
-     * Subscribes to multiple topics based on one or more topic name prefixes. Can
-     * be used in combination with a Value Listener or ReadQueueValue() to get value
-     * changes across all matching topics.
-     *
-     * @param inst instance handle
-     * @param prefixes topic name prefixes
-     * @param prefixes_len number of elements in prefixes array
-     * @param options subscriber options
-     * @return subscriber handle
-     */
+    /// Subscribes to multiple topics based on one or more topic name prefixes. Can
+    /// be used in combination with a Value Listener or ReadQueueValue() to get value
+    /// changes across all matching topics.
+    ///
+    /// # Parameters
+    /// 
+    /// - inst: instance handle
+    /// - prefixes: topic name prefixes
+    /// - prefixes_len: number of elements in prefixes array
+    /// - options: subscriber options
+    /// 
+    /// # Returns
+    /// 
+    /// subscriber handle
     pub fn NT_SubscribeMultiple(
         inst: NT_Inst,
         prefixes: *const WPI_String,
@@ -938,77 +999,88 @@ extern "C" {
         options: *const NT_PubSubOptions,
     ) -> NT_MultiSubscriber;
 
-    /**
-     * Unsubscribes a multi-subscriber.
-     *
-     * @param sub multi-subscriber handle
-     */
+    /// Unsubscribes a multi-subscriber.
+    ///
+    /// # Parameters
+    /// 
+    /// sub multi-subscriber handle
     pub fn NT_UnsubscribeMultiple(sub: NT_MultiSubscriber);
 
-    /**
-     * Creates a listener poller.
-     *
-     * A poller provides a single queue of poll events.  Events linked to this
-     * poller (using NT_AddPolledXListener()) will be stored in the queue and
-     * must be collected by calling NT_ReadListenerQueue().
-     * The returned handle must be destroyed with NT_DestroyListenerPoller().
-     *
-     * @param inst      instance handle
-     * @return poller handle
-     */
+    /// Creates a listener poller.
+    ///
+    /// A poller provides a single queue of poll events.  Events linked to this
+    /// poller (using NT_AddPolledXListener()) will be stored in the queue and
+    /// must be collected by calling NT_ReadListenerQueue().
+    /// The returned handle must be destroyed with NT_DestroyListenerPoller().
+    ///
+    /// # Parameters
+    /// 
+    /// - inst: instance handle
+    /// 
+    /// # Returns
+    /// 
+    /// poller handle
     pub fn NT_CreateListenerPoller(inst: NT_Inst) -> NT_ListenerPoller;
 
-    /**
-     * Destroys a listener poller.  This will abort any blocked polling
-     * call and prevent additional events from being generated for this poller.
-     *
-     * @param poller    poller handle
-     */
+    /// Destroys a listener poller.  This will abort any blocked polling
+    /// call and prevent additional events from being generated for this poller.
+    ///
+    /// # Parameters
+    /// 
+    /// - poller: poller handle
     pub fn NT_DestroyListenerPoller(poller: NT_ListenerPoller);
 
-    /**
-     * Read notifications.
-     *
-     * @param poller    poller handle
-     * @param len       length of returned array (output)
-     * @return Array of events.  Returns NULL and len=0 if no events since last
-     *         call.
-     */
+    /// Read notifications.
+    ///
+    /// # Parameters
+    /// 
+    /// - poller: poller handle
+    /// - len: length of returned array (output)
+    /// 
+    /// # Returns
+    /// 
+    /// Array of events.  Returns NULL and len=0 if no events since last call.
     pub fn NT_ReadListenerQueue(poller: NT_ListenerPoller, len: *mut usize) -> *mut NT_Event;
 
-    /**
-     * Removes a listener.
-     *
-     * @param listener Listener handle to remove
-     */
+    /// Removes a listener.
+    ///
+    /// # Parameters
+    /// 
+    /// - listener: Listener handle to remove
     pub fn NT_RemoveListener(listener: NT_Listener);
 
-    /**
-     * Wait for the listener queue to be empty. This is primarily useful
-     * for deterministic testing. This blocks until either the listener
-     * queue is empty (e.g. there are no more events that need to be passed along to
-     * callbacks or poll queues) or the timeout expires.
-     *
-     * @param handle  handle
-     * @param timeout timeout, in seconds. Set to 0 for non-blocking behavior, or a
-     *                negative value to block indefinitely
-     * @return False if timed out, otherwise true.
-     */
+    /// Wait for the listener queue to be empty. This is primarily useful
+    /// for deterministic testing. This blocks until either the listener
+    /// queue is empty (e.g. there are no more events that need to be passed along to
+    /// callbacks or poll queues) or the timeout expires.
+    ///
+    /// # Parameters
+    /// 
+    /// - handle:  handle
+    /// - timeout: timeout, in seconds. Set to 0 for non-blocking behavior, or a
+    ///   negative value to block indefinitely
+    /// 
+    /// # Returns
+    /// 
+    /// False if timed out, otherwise true.
     pub fn NT_WaitForListenerQueue(handle: NT_Handle, timeout: f64) -> NT_Bool;
 
-    /**
-     * Create a listener for changes to topics with names that start with
-     * the given prefix. This creates a corresponding internal subscriber with the
-     * lifetime of the listener.
-     *
-     * @param inst Instance handle
-     * @param prefix Topic name string prefix
-     * @param mask Bitmask of NT_EventFlags values (only topic and value events will
-     *             be generated)
-     * @param data Data passed to callback function
-     * @param callback Listener function
-     * @return Listener handle
-     */
+    /// Create a listener for changes to topics with names that start with
+    /// the given prefix. This creates a corresponding internal subscriber with the
+    /// lifetime of the listener.
+    ///
+    /// # Parameters
+    /// 
+    /// - inst: Instance handle
+    /// - prefix: Topic name string prefix
+    /// - mask: Bitmask of NT_EventFlags values (only topic and value events will
+    ///   be generated)
+    /// - data: Data passed to callback function
+    /// - callback: Listener function
+    /// 
+    /// # Returns
+    /// 
+    /// Listener handle
     pub fn NT_AddListenerSingle(
         inst: NT_Inst,
         prefix: *const WPI_String,
@@ -1017,20 +1089,23 @@ extern "C" {
         callback: NT_ListenerCallback,
     ) -> NT_Listener;
 
-    /**
-     * Create a listener for changes to topics with names that start with any of
-     * the given prefixes. This creates a corresponding internal subscriber with the
-     * lifetime of the listener.
-     *
-     * @param inst Instance handle
-     * @param prefixes Topic name string prefixes
-     * @param prefixes_len Number of elements in prefixes array
-     * @param mask Bitmask of NT_EventFlags values (only topic and value events will
-     *             be generated)
-     * @param data Data passed to callback function
-     * @param callback Listener function
-     * @return Listener handle
-     */
+    /// Create a listener for changes to topics with names that start with any of
+    /// the given prefixes. This creates a corresponding internal subscriber with the
+    /// lifetime of the listener.
+    ///
+    /// # Parameters
+    /// 
+    /// - inst: Instance handle
+    /// - prefixes: Topic name string prefixes
+    /// - prefixes_len: Number of elements in prefixes array
+    /// - mask: Bitmask of NT_EventFlags values (only topic and value events will
+    ///   be generated)
+    /// - data: Data passed to callback function
+    /// - callback: Listener function
+    /// 
+    /// # Returns
+    /// 
+    /// Listener handle
     pub fn NT_AddListenerMultiple(
         inst: NT_Inst,
         prefixes: *const WPI_String,
@@ -1040,26 +1115,29 @@ extern "C" {
         callback: NT_ListenerCallback,
     ) -> NT_Listener;
 
-    /**
-     * Create a listener.
-     *
-     * Some combinations of handle and mask have no effect:
-     * - connection and log message events are only generated on instances
-     * - topic and value events are only generated on non-instances
-     *
-     * Adding value and topic events on a topic will create a corresponding internal
-     * subscriber with the lifetime of the listener.
-     *
-     * Adding a log message listener through this function will only result in
-     * events at NT_LOG_INFO or higher; for more customized settings, use
-     * NT_AddLogger().
-     *
-     * @param handle Handle
-     * @param mask Bitmask of NT_EventFlags values
-     * @param data Data passed to callback function
-     * @param callback Listener function
-     * @return Listener handle
-     */
+    /// Create a listener.
+    ///
+    /// Some combinations of handle and mask have no effect:
+    /// - connection and log message events are only generated on instances
+    /// - topic and value events are only generated on non-instances
+    ///
+    /// Adding value and topic events on a topic will create a corresponding internal
+    /// subscriber with the lifetime of the listener.
+    ///
+    /// Adding a log message listener through this function will only result in
+    /// events at NT_LOG_INFO or higher; for more customized settings, use
+    /// NT_AddLogger().
+    ///
+    /// # Parameters
+    /// 
+    /// - handle: Handle
+    /// - mask: Bitmask of NT_EventFlags values
+    /// - data: Data passed to callback function
+    /// - callback: Listener function
+    /// 
+    /// # Returns
+    /// 
+    /// Listener handle
     pub fn NT_AddListener(
         handle: NT_Handle,
         mask: u32,
@@ -1067,17 +1145,20 @@ extern "C" {
         callback: NT_ListenerCallback,
     ) -> NT_Listener;
 
-    /**
-     * Creates a polled topic listener. This creates a corresponding internal
-     * subscriber with the lifetime of the listener.
-     * The caller is responsible for calling NT_ReadListenerQueue() to poll.
-     *
-     * @param poller            poller handle
-     * @param prefix            UTF-8 string prefix
-     * @param mask              NT_EventFlags bitmask (only topic and value events
-     * will be generated)
-     * @return Listener handle
-     */
+    /// Creates a polled topic listener. This creates a corresponding internal
+    /// subscriber with the lifetime of the listener.
+    /// The caller is responsible for calling NT_ReadListenerQueue() to poll.
+    ///
+    /// # Parameters
+    /// 
+    /// - poller: poller handle
+    /// - prefix: UTF-8 string prefix
+    /// - mask: NT_EventFlags bitmask (only topic and value events
+    ///   will be generated)
+    /// 
+    /// # Returns
+    /// 
+    /// Listener handle
     pub fn NT_AddPolledListenerSingle(
         poller: NT_ListenerPoller,
         prefix: *const WPI_String,
@@ -1169,11 +1250,11 @@ extern "C" {
         port4: u32,
     );
 
-    /**
-     * Stops the server if it is running.
-     *
-     * @param inst  instance handle
-     */
+    /// Stops the server if it is running.
+    ///
+    /// # Parameters
+    /// 
+    /// inst: instance handle
     pub fn NT_StopServer(inst: NT_Inst);
 
     /// Starts a NT3 client. Use NT_SetServer or NT_SetServerTeam to set the server
@@ -1194,16 +1275,17 @@ extern "C" {
     /// - `identity`: Network identity to advertise (cannot be empty string).
     pub fn NT_StartClient4(inst: NT_Inst, identity: *const WPI_String);
 
-    /**
-     * Stops the client if it is running.
-     *
-     * @param inst  instance handle
-     */
+    /// Stops the client if it is running.
+    ///
+    /// # Parameters
+    /// 
+    /// - inst: instance handle
     pub fn NT_StopClient(inst: NT_Inst);
 
     /// Sets server address and port for client (without restarting client).
     ///
     /// # Parameters
+    /// 
     /// - `inst`: Instance handle.
     /// - `server_name`: Server name (UTF-8 string, null-terminated).
     /// - `port`: Port to communicate over.
@@ -1213,6 +1295,7 @@ extern "C" {
     /// The client will attempt to connect to each server in round-robin fashion.
     ///
     /// # Parameters
+    /// 
     /// - `inst`: Instance handle.
     /// - `count`: Length of the `server_names` and `ports` arrays.
     /// - `server_names`: Array of server names (each a UTF-8 string, null-terminated).
@@ -1228,17 +1311,18 @@ extern "C" {
     /// Connects using commonly known robot addresses for the specified team.
     ///
     /// # Parameters
+    /// 
     /// - `inst`: Instance handle.
     /// - `team`: Team number.
     /// - `port`: Port to communicate over.
     pub fn NT_SetServerTeam(inst: NT_Inst, team: u32, port: u32);
 
-    /**
-     * Disconnects the client if it's running and connected. This will automatically
-     * start reconnection attempts to the current server list.
-     *
-     * @param inst instance handle
-     */
+    /// Disconnects the client if it's running and connected. This will automatically
+    /// start reconnection attempts to the current server list.
+    ///
+    /// # Parameters
+    /// 
+    /// - inst: instance handle
     pub fn NT_Disconnect(inst: NT_Inst);
 
     /// Starts requesting server address from Driver Station.
@@ -1250,38 +1334,38 @@ extern "C" {
     /// - `port`: Server port to use in combination with IP from DS.
     pub fn NT_StartDSClient(inst: NT_Inst, port: u32);
 
-    /**
-     * Stops requesting server address from Driver Station.
-     *
-     * @param inst  instance handle
-     */
+    /// Stops requesting server address from Driver Station.
+    ///
+    /// # Parameters
+    /// 
+    /// - inst: instance handle
     pub fn NT_StopDSClient(inst: NT_Inst);
 
-    /**
-     * Flush local updates.
-     *
-     * Forces an immediate flush of all local changes to the client/server.
-     * This does not flush to the network.
-     *
-     * Normally this is done on a regularly scheduled interval.
-     *
-     * @param inst      instance handle
-     */
+    /// Flush local updates.
+    ///
+    /// Forces an immediate flush of all local changes to the client/server.
+    /// This does not flush to the network.
+    ///
+    /// Normally this is done on a regularly scheduled interval.
+    ///
+    /// # Parameters
+    /// 
+    /// - inst: instance handle
     pub fn NT_FlushLocal(inst: NT_Inst);
 
-    /**
-     * Flush to network.
-     *
-     * Forces an immediate flush of all local entry changes to network.
-     * Normally this is done on a regularly scheduled interval (set
-     * by update rates on individual publishers).
-     *
-     * Note: flushes are rate limited to avoid excessive network traffic.  If
-     * the time between calls is too short, the flush will occur after the minimum
-     * time elapses (rather than immediately).
-     *
-     * @param inst      instance handle
-     */
+    /// Flush to network.
+    ///
+    /// Forces an immediate flush of all local entry changes to network.
+    /// Normally this is done on a regularly scheduled interval (set
+    /// by update rates on individual publishers).
+    ///
+    /// Note: flushes are rate limited to avoid excessive network traffic.  If
+    /// the time between calls is too short, the flush will occur after the minimum
+    /// time elapses (rather than immediately).
+    ///
+    /// # Parameters
+    /// 
+    /// - inst: instance handle
     pub fn NT_Flush(inst: NT_Inst);
 
     /// Get information on the currently established network connections.
@@ -1381,26 +1465,26 @@ extern "C" {
     /// - `event`: Pointer to the event to dispose.
     pub fn NT_DisposeEvent(event: *mut NT_Event);
 
-    /**
-     * Returns monotonic current time in 1 us increments.
-     * This is the same time base used for entry and connection timestamps.
-     * This function by default simply wraps WPI_Now(), but if NT_SetNow() is
-     * called, this function instead returns the value passed to NT_SetNow();
-     * this can be used to reduce overhead.
-     *
-     * @return Timestamp
-     */
+    /// Returns monotonic current time in 1 us increments.
+    /// This is the same time base used for entry and connection timestamps.
+    /// This function by default simply wraps WPI_Now(), but if NT_SetNow() is
+    /// called, this function instead returns the value passed to NT_SetNow();
+    /// this can be used to reduce overhead.
+    ///
+    /// # Returns
+    /// 
+    /// Timestamp
     pub fn NT_Now() -> i64;
 
-    /**
-     * Sets the current timestamp used for timestamping values that do not
-     * provide a timestamp (e.g. a value of 0 is passed).  For consistency,
-     * it also results in NT_Now() returning the set value.  This should generally
-     * be used only if the overhead of calling WPI_Now() is a concern.
-     * If used, it should be called periodically with the value of WPI_Now().
-     *
-     * @param timestamp timestamp (1 us increments)
-     */
+    /// Sets the current timestamp used for timestamping values that do not
+    /// provide a timestamp (e.g. a value of 0 is passed).  For consistency,
+    /// it also results in NT_Now() returning the set value.  This should generally
+    /// be used only if the overhead of calling WPI_Now() is a concern.
+    /// If used, it should be called periodically with the value of WPI_Now().
+    ///
+    /// # Parameters
+    /// 
+    /// - timestamp: timestamp (1 us increments)
     pub fn NT_SetNow(timestamp: i64);
 
     /// Starts logging entry changes to a DataLog.
@@ -1424,22 +1508,24 @@ extern "C" {
         logPrefix: *const WPI_String,
     ) -> NT_DataLogger;
 
-    /**
-     * Stops logging entry changes to a DataLog.
-     *
-     * @param logger data logger handle
-     */
+    /// Stops logging entry changes to a DataLog.
+    ///
+    /// # Parameters
+    /// 
+    /// - logger: data logger handle
     pub fn NT_StopEntryDataLog(logger: NT_DataLogger);
 
     /// Starts logging connection changes to a DataLog.
     ///
     /// # Parameters
+    /// 
     /// - `inst`: Instance handle.
     /// - `log`: Data log object; lifetime must extend until `StopConnectionDataLog`
     ///         is called or the instance is destroyed.
     /// - `name`: Data log entry name.
     ///
     /// # Returns
+    /// 
     /// Data logger handle.
     pub fn NT_StartConnectionDataLog(
         inst: NT_Inst,
@@ -1447,11 +1533,11 @@ extern "C" {
         name: *const WPI_String,
     ) -> NT_ConnectionDataLogger;
 
-    /**
-     * Stops logging connection changes to a DataLog.
-     *
-     * @param logger data logger handle
-     */
+    /// Stops logging connection changes to a DataLog.
+    ///
+    /// # Parameters
+    /// 
+    /// - logger: data logger handle
     pub fn NT_StopConnectionDataLog(logger: NT_ConnectionDataLogger);
 
     /// Add logger callback function. By default, log messages are sent to stderr;
@@ -1592,9 +1678,11 @@ extern "C" {
     /// specific number of bytes to allocate. That is calculated internally.
     ///
     /// # Parameters
+    /// 
     /// - `size`: The number of elements the array will contain.
     ///
     /// # Returns
+    /// 
     /// The allocated double array.
     ///
     /// After use, the array should be freed using the `NT_FreeDoubleArray()` function.
@@ -1603,30 +1691,35 @@ extern "C" {
     /// Frees an array of chars.
     ///
     /// # Parameters
+    /// 
     /// - `v_char`: Pointer to the char array to free.
     pub fn NT_FreeCharArray(v_char: *mut std::ffi::c_char);
 
     /// Frees an array of booleans.
     ///
     /// # Parameters
+    /// 
     /// - `v_boolean`: Pointer to the boolean array to free.
     pub fn NT_FreeBooleanArray(v_boolean: *mut bool);
 
     /// Frees an array of integers.
     ///
     /// # Parameters
+    /// 
     /// - `v_int`: Pointer to the integer array to free.
     pub fn NT_FreeIntegerArray(v_int: *mut i64);
 
     /// Frees an array of floats.
     ///
     /// # Parameters
+    /// 
     /// - `v_float`: Pointer to the float array to free.
     pub fn NT_FreeFloatArray(v_float: *mut f32);
 
     /// Frees an array of doubles.
     ///
     /// # Parameters
+    /// 
     /// - `v_double`: Pointer to the double array to free.
     pub fn NT_FreeDoubleArray(v_double: *mut f64);
 
@@ -1634,9 +1727,11 @@ extern "C" {
     /// Note that one of the type options is "unassigned".
     ///
     /// # Parameters
+    /// 
     /// - `value`: The NT_Value struct to get the type from.
     ///
     /// # Returns
+    /// 
     /// The type of the value, or unassigned if null.
     pub fn NT_GetValueType(value: *const NT_Value) -> NT_Type;
 
@@ -1644,11 +1739,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
+    /// 
     /// - `value`: NT_Value struct to get the boolean from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `v_boolean`: Returns the boolean assigned to the name.
     ///
     /// # Returns
+    /// 
     /// 1 if successful, or 0 if value is null or not a boolean.
     pub fn NT_GetValueBoolean(
         value: *const NT_Value,
@@ -1660,11 +1757,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
+    /// 
     /// - `value`: NT_Value struct to get the int from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `v_int`: Returns the int assigned to the name.
     ///
     /// # Returns
+    /// 
     /// 1 if successful, or 0 if value is null or not an int.
     pub fn NT_GetValueInteger(
         value: *const NT_Value,
@@ -1676,11 +1775,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
+    /// 
     /// - `value`: NT_Value struct to get the float from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `v_float`: Returns the float assigned to the name.
     ///
     /// # Returns
+    /// 
     /// 1 if successful, or 0 if value is null or not a float.
     pub fn NT_GetValueFloat(
         value: *const NT_Value,
@@ -1692,11 +1793,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
+    /// 
     /// - `value`: NT_Value struct to get the double from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `v_double`: Returns the double assigned to the name.
     ///
     /// # Returns
+    /// 
     /// 1 if successful, or 0 if value is null or not a double.
     pub fn NT_GetValueDouble(
         value: *const NT_Value,
@@ -1708,11 +1811,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
+    /// 
     /// - `value`: NT_Value struct to get the string from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `str_len`: Returns the length of the string.
     ///
     /// # Returns
+    /// 
     /// Pointer to the string (UTF-8), or null if error.
     ///
     /// It is the caller's responsibility to free the string once it's no longer
