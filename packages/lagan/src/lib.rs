@@ -1,11 +1,12 @@
-use std::{
-    ffi::{CString},
-    net::SocketAddr,
-};
+use std::{ffi::CString, net::SocketAddr, sync::LazyLock};
 
 use libntcore::{
     NT_GetDefaultInstance, NT_Inst, NT_SetServer, NT_StartClient3, NT_StartClient4, WPI_String,
 };
+
+/// The default NetworkTables instance.
+/// Lazily initialized on the first usage.
+static NT_INSTANCE: LazyLock<NT_Inst> = LazyLock::new(|| unsafe { NT_GetDefaultInstance() });
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum NetworkTablesVersion {
@@ -15,9 +16,7 @@ pub enum NetworkTablesVersion {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub struct Client {
-    instance: NT_Inst,
-}
+pub struct Client {}
 
 impl Client {
     pub fn new(
@@ -25,7 +24,10 @@ impl Client {
         address: SocketAddr,
         name: Option<impl AsRef<str>>,
     ) -> Self {
-        let instance = unsafe { NT_GetDefaultInstance() };
+        let instance = *NT_INSTANCE;
+
+        //TODO: Are these pointers supposed to be static?
+        //TODO: When can the identity and name safely be dropped?
         unsafe {
             let identity = CString::new(address.ip().to_string()).unwrap();
             let identity = WPI_String::from(identity.as_c_str());
@@ -41,6 +43,6 @@ impl Client {
             NT_SetServer(instance, &raw const server_name, address.port() as _);
         }
 
-        Self { instance }
+        Self {}
     }
 }
