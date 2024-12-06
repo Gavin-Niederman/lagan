@@ -234,9 +234,7 @@ pub struct NT_TopicInfo {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Hash)]
 pub struct NT_ConnectionInfo {
-    /**
     /// The remote identifier (as set on the remote node by NT_StartClient4().
-     */
     pub remote_id: WPI_String,
 
     /// The IP address of the remote node.
@@ -245,16 +243,12 @@ pub struct NT_ConnectionInfo {
     /// The port number of the remote node.
     pub remote_port: u32,
 
-    /**
     /// The last time any update was received from the remote node (same scale as
     /// returned by nt::Now()).
-     */
     pub last_update: u64,
 
-    /**
     /// The protocol version being used for this connection.  This in protocol
     /// layer format, so 0x0200 = 2.0, 0x0300 = 3.0).
-     */
     pub protocol_version: u32,
 }
 
@@ -392,35 +386,30 @@ pub struct NT_PubSubOptions {
 }
 
 extern "C" {
-    /**
-     * Get default instance.
-     * This is the instance used by non-handle-taking functions.
-     *
-     * @return Instance handle
-     */
+    /// Get default instance.
+    /// This is the instance used by non-handle-taking functions.
+    ///
+    /// # Returns
+    ///
+    /// Instance handle
     pub fn NT_GetDefaultInstance() -> NT_Inst;
 
-    /**
-     * Create an instance.
-     *
-     * @return Instance handle
-     */
+    /// Create an instance.
+    ///
+    /// # Returns
+    ///
+    /// Instance handle
     pub fn NT_CreateInstance() -> NT_Inst;
 
-    /**
-     * Destroy an instance.
-     * The default instance cannot be destroyed.
-     *
-     * @param inst Instance handle
-     */
+    /// Destroy an instance.
+    /// The default instance cannot be destroyed.
+    ///
+    /// # Parameters
+    ///
+    /// - inst: Instance handle
     pub fn NT_DestroyInstance(inst: NT_Inst);
 
-    /**
-     * Get instance handle from another handle.
-     *
-     * @param handle    handle
-     * @return Instance handle
-     */
+    /// Get instance handle from another handle.
     pub fn NT_GetInstanceFromHandle(handle: NT_Handle) -> NT_Inst;
 
     /// Get Entry Handle.
@@ -455,78 +444,91 @@ extern "C" {
     /// Entry type.
     pub fn NT_GetEntryType(entry: NT_Entry) -> NT_Type;
 
-    /**
-     * Gets the last time the entry was changed.
-     * Returns 0 if the handle is invalid.
-     *
-     * @param entry   entry handle
-     * @return Entry last change time
-     */
+    /// Gets the last time the entry was changed.
+    /// Returns 0 if the handle is invalid.
+    ///
+    /// # Parameters
+    ///
+    /// - entry: entry handle
+    ///
+    /// # Returns
+    ///
+    /// Entry last change time
     pub fn NT_GetEntryLastChange(entry: NT_Entry) -> u64;
 
-    /**
-     * Get Entry Value.
-     *
-     * Returns copy of current entry value.
-     * Note that one of the type options is "unassigned".
-     *
-     * @param entry     entry handle
-     * @param value     storage for returned entry value
-     *
-     * It is the caller's responsibility to free value once it's no longer
-     * needed (the utility function NT_DisposeValue() is useful for this
-     * purpose).
-     */
+    /// Get Entry Value.
+    ///
+    /// Returns copy of current entry value.
+    /// Note that one of the type options is "unassigned".
+    ///
+    /// # Parameters
+    ///
+    /// - entry: entry handle
+    /// - value: storage for returned entry value
+    ///
+    /// # Note
+    ///
+    /// It is the caller's responsibility to free value once it's no longer
+    /// needed (the utility function NT_DisposeValue() is useful for this
+    /// purpose).
     pub fn NT_GetEntryValue(entry: NT_Entry, value: *mut NT_Value);
 
-    /**
-     * Get Entry Value.
-     *
-     * Returns copy of current entry value.
-     * Note that one of the type options is "unassigned".
-     *
-     * @param entry     entry handle
-     * @param types     bitmask of NT_Type values; 0 is treated specially
-     *                  as a "don't care"
-     * @param value     storage for returned entry value
-     *
-     * It is the caller's responsibility to free value once it's no longer
-     * needed (the utility function NT_DisposeValue() is useful for this
-     * purpose).
-     */
+    /// Get Entry Value.
+    ///
+    /// Returns copy of current entry value.
+    /// Note that one of the type options is "unassigned".
+    ///
+    /// # Parameters
+    /// 
+    /// - entry: entry handle
+    /// - types: bitmask of NT_Type values; 0 is treated specially
+    ///   as a "don't care"
+    /// - value: storage for returned entry value
+    /// 
+    /// # Note
+    ///
+    /// It is the caller's responsibility to free value once it's no longer
+    /// needed (the utility function NT_DisposeValue() is useful for this
+    /// purpose).
     pub fn NT_GetEntryValueType(entry: NT_Entry, types: u32, value: *mut NT_Value);
 
-    /**
-     * Set Default Entry Value.
-     *
-     * Returns copy of current entry value if it exists.
-     * Otherwise, sets passed in value, and returns set value.
-     * Note that one of the type options is "unassigned".
-     *
-     * @param entry     entry handle
-     * @param default_value     value to be set if name does not exist
-     * @return 0 on error (value not set), 1 on success
-     */
+    /// Set Default Entry Value.
+    ///
+    /// Returns copy of current entry value if it exists.
+    /// Otherwise, sets passed in value, and returns set value.
+    /// Note that one of the type options is "unassigned".
+    ///
+    /// # Parameters
+    /// 
+    /// - entry: entry handle
+    /// - default_value: value to be set if name does not exist
+    /// 
+    /// # Returns
+    /// 
+    /// 0 on error (value not set), 1 on success
     pub fn NT_SetDefaultEntryValue(entry: NT_Entry, default_value: *const NT_Value) -> NT_Bool;
 
-    /**
-     * Set Entry Value.
-     *
-     * Sets new entry value.  If type of new value differs from the type of the
-     * currently stored entry, returns error and does not update value.
-     *
-     * @param entry     entry handle
-     * @param value     new entry value
-     * @return 0 on error (type mismatch), 1 on success
-     */
+    /// Set Entry Value.
+    ///
+    /// Sets new entry value.  If type of new value differs from the type of the
+    /// currently stored entry, returns error and does not update value.
+    ///
+    /// # Parameters
+    /// 
+    /// - entry: entry handle
+    /// - value: new entry value
+    /// 
+    /// # Returns
+    /// 
+    /// 0 on error (type mismatch), 1 on success
     pub fn NT_SetEntryValue(entry: NT_Entry, value: *const NT_Value) -> NT_Bool;
 
-    /**
-     * Set Entry Flags.
-     *
-     * @param entry     entry handle
-     * @param flags     flags value (bitmask of NT_EntryFlags)
-     */
+    /// Set Entry Flags.
+    ///
+    /// # Parameters
+    /// 
+    /// - entry: entry handle
+    /// - flags: flags value (bitmask of NT_EntryFlags)
     pub fn NT_SetEntryFlags(entry: NT_Entry, flags: u32);
 
     /**

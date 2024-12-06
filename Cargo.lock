@@ -2747,6 +2747,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "libntcore"
+version = "0.1.0"
+
+[[package]]
 name = "libredox"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3001,10 +3005,6 @@ dependencies = [
  "walkdir",
  "windows-sys 0.45.0",
 ]
-
-[[package]]
-name = "ntcore-sys"
-version = "0.1.0"
 
 [[package]]
 name = "nu-ansi-term"
