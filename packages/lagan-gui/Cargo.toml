@@ -10,5 +10,5 @@ edition = "2021"
 
 [dependencies]
 dioxus = { version = "0.5.6", default-features = false, features = ["macro", "hooks"] }
-freya = "0.2.2"
+freya = { git = "https://github.com/marc2332/freya" }
 lagan = { path = "../lagan", version = "0.1.0" }
