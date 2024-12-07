@@ -1,7 +1,9 @@
-use std::{thread::sleep, time::Duration, u32};
+use std::{thread::sleep, time::Duration};
 
 use libntcore::{
-    NT_AddLogger, NT_EntryFlags, NT_Event, NT_GetDefaultInstance, NT_GetEntry, NT_GetEntryValue, NT_SetEntryFlags, NT_SetEntryValue, NT_SetServer, NT_StartClient4, NT_StartServer, NT_Type, NT_Value, NT_ValueData, WPI_String
+    NT_AddLogger, NT_EntryFlags, NT_Event, NT_GetDefaultInstance, NT_GetEntry, NT_Now,
+    NT_SetEntryFlags, NT_SetEntryValue, NT_StartServer, NT_Type, NT_Value, NT_ValueData,
+    WPI_String,
 };
 
 extern "C" fn log_cb(_data: *mut std::ffi::c_void, event: *const NT_Event) {
@@ -16,13 +18,7 @@ fn main() {
         NT_AddLogger(inst, 0, u32::MAX, (&raw mut data).cast(), log_cb);
 
         let mut persist_name: WPI_String = c"networktables.json".into();
-        NT_StartServer(
-            inst,
-            &raw mut persist_name,
-            0 as *const WPI_String,
-            1735,
-            5810,
-        );
+        NT_StartServer(inst, &raw mut persist_name, std::ptr::null(), 1735, 5810);
 
         // Who knows
         sleep(Duration::from_secs(1));
@@ -31,8 +27,8 @@ fn main() {
         let foo = NT_GetEntry(inst, &raw mut name);
         let val = NT_Value {
             r#type: NT_Type::NT_DOUBLE,
-            last_change: 0,
-            server_time: 0,
+            last_change: NT_Now(),
+            server_time: NT_Now(),
             data: NT_ValueData { v_double: 3.14 },
         };
         NT_SetEntryValue(foo, &raw const val);

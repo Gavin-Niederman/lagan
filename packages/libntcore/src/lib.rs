@@ -963,18 +963,18 @@ extern "C" {
     /// Stops entry/subscriber/publisher.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - pubsubentry: entry/subscriber/publisher handle
     pub fn NT_Release(pubsubentry: NT_Handle);
 
     /// Gets the topic handle from an entry/subscriber/publisher handle.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - pubsubentry: entry/subscriber/publisher handle
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Topic handle
     pub fn NT_GetTopicFromHandle(pubsubentry: NT_Handle) -> NT_Topic;
 
@@ -983,14 +983,14 @@ extern "C" {
     /// changes across all matching topics.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - inst: instance handle
     /// - prefixes: topic name prefixes
     /// - prefixes_len: number of elements in prefixes array
     /// - options: subscriber options
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// subscriber handle
     pub fn NT_SubscribeMultiple(
         inst: NT_Inst,
@@ -1002,7 +1002,7 @@ extern "C" {
     /// Unsubscribes a multi-subscriber.
     ///
     /// # Parameters
-    /// 
+    ///
     /// sub multi-subscriber handle
     pub fn NT_UnsubscribeMultiple(sub: NT_MultiSubscriber);
 
@@ -1014,11 +1014,11 @@ extern "C" {
     /// The returned handle must be destroyed with NT_DestroyListenerPoller().
     ///
     /// # Parameters
-    /// 
+    ///
     /// - inst: instance handle
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// poller handle
     pub fn NT_CreateListenerPoller(inst: NT_Inst) -> NT_ListenerPoller;
 
@@ -1026,26 +1026,26 @@ extern "C" {
     /// call and prevent additional events from being generated for this poller.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - poller: poller handle
     pub fn NT_DestroyListenerPoller(poller: NT_ListenerPoller);
 
     /// Read notifications.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - poller: poller handle
     /// - len: length of returned array (output)
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Array of events.  Returns NULL and len=0 if no events since last call.
     pub fn NT_ReadListenerQueue(poller: NT_ListenerPoller, len: *mut usize) -> *mut NT_Event;
 
     /// Removes a listener.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - listener: Listener handle to remove
     pub fn NT_RemoveListener(listener: NT_Listener);
 
@@ -1055,13 +1055,13 @@ extern "C" {
     /// callbacks or poll queues) or the timeout expires.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - handle:  handle
     /// - timeout: timeout, in seconds. Set to 0 for non-blocking behavior, or a
     ///   negative value to block indefinitely
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// False if timed out, otherwise true.
     pub fn NT_WaitForListenerQueue(handle: NT_Handle, timeout: f64) -> NT_Bool;
 
@@ -1070,16 +1070,16 @@ extern "C" {
     /// lifetime of the listener.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - inst: Instance handle
     /// - prefix: Topic name string prefix
     /// - mask: Bitmask of NT_EventFlags values (only topic and value events will
     ///   be generated)
     /// - data: Data passed to callback function
     /// - callback: Listener function
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Listener handle
     pub fn NT_AddListenerSingle(
         inst: NT_Inst,
@@ -1094,7 +1094,7 @@ extern "C" {
     /// lifetime of the listener.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - inst: Instance handle
     /// - prefixes: Topic name string prefixes
     /// - prefixes_len: Number of elements in prefixes array
@@ -1102,9 +1102,9 @@ extern "C" {
     ///   be generated)
     /// - data: Data passed to callback function
     /// - callback: Listener function
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Listener handle
     pub fn NT_AddListenerMultiple(
         inst: NT_Inst,
@@ -1129,14 +1129,14 @@ extern "C" {
     /// NT_AddLogger().
     ///
     /// # Parameters
-    /// 
+    ///
     /// - handle: Handle
     /// - mask: Bitmask of NT_EventFlags values
     /// - data: Data passed to callback function
     /// - callback: Listener function
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Listener handle
     pub fn NT_AddListener(
         handle: NT_Handle,
@@ -1150,14 +1150,14 @@ extern "C" {
     /// The caller is responsible for calling NT_ReadListenerQueue() to poll.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - poller: poller handle
     /// - prefix: UTF-8 string prefix
     /// - mask: NT_EventFlags bitmask (only topic and value events
     ///   will be generated)
-    /// 
+    ///
     /// # Returns
-    /// 
+    ///
     /// Listener handle
     pub fn NT_AddPolledListenerSingle(
         poller: NT_ListenerPoller,
@@ -1253,7 +1253,7 @@ extern "C" {
     /// Stops the server if it is running.
     ///
     /// # Parameters
-    /// 
+    ///
     /// inst: instance handle
     pub fn NT_StopServer(inst: NT_Inst);
 
@@ -1278,14 +1278,14 @@ extern "C" {
     /// Stops the client if it is running.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - inst: instance handle
     pub fn NT_StopClient(inst: NT_Inst);
 
     /// Sets server address and port for client (without restarting client).
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `inst`: Instance handle.
     /// - `server_name`: Server name (UTF-8 string, null-terminated).
     /// - `port`: Port to communicate over.
@@ -1295,7 +1295,7 @@ extern "C" {
     /// The client will attempt to connect to each server in round-robin fashion.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `inst`: Instance handle.
     /// - `count`: Length of the `server_names` and `ports` arrays.
     /// - `server_names`: Array of server names (each a UTF-8 string, null-terminated).
@@ -1311,7 +1311,7 @@ extern "C" {
     /// Connects using commonly known robot addresses for the specified team.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `inst`: Instance handle.
     /// - `team`: Team number.
     /// - `port`: Port to communicate over.
@@ -1321,7 +1321,7 @@ extern "C" {
     /// start reconnection attempts to the current server list.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - inst: instance handle
     pub fn NT_Disconnect(inst: NT_Inst);
 
@@ -1337,7 +1337,7 @@ extern "C" {
     /// Stops requesting server address from Driver Station.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - inst: instance handle
     pub fn NT_StopDSClient(inst: NT_Inst);
 
@@ -1349,7 +1349,7 @@ extern "C" {
     /// Normally this is done on a regularly scheduled interval.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - inst: instance handle
     pub fn NT_FlushLocal(inst: NT_Inst);
 
@@ -1364,7 +1364,7 @@ extern "C" {
     /// time elapses (rather than immediately).
     ///
     /// # Parameters
-    /// 
+    ///
     /// - inst: instance handle
     pub fn NT_Flush(inst: NT_Inst);
 
@@ -1472,7 +1472,7 @@ extern "C" {
     /// this can be used to reduce overhead.
     ///
     /// # Returns
-    /// 
+    ///
     /// Timestamp
     pub fn NT_Now() -> i64;
 
@@ -1483,7 +1483,7 @@ extern "C" {
     /// If used, it should be called periodically with the value of WPI_Now().
     ///
     /// # Parameters
-    /// 
+    ///
     /// - timestamp: timestamp (1 us increments)
     pub fn NT_SetNow(timestamp: i64);
 
@@ -1511,21 +1511,21 @@ extern "C" {
     /// Stops logging entry changes to a DataLog.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - logger: data logger handle
     pub fn NT_StopEntryDataLog(logger: NT_DataLogger);
 
     /// Starts logging connection changes to a DataLog.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `inst`: Instance handle.
     /// - `log`: Data log object; lifetime must extend until `StopConnectionDataLog`
     ///         is called or the instance is destroyed.
     /// - `name`: Data log entry name.
     ///
     /// # Returns
-    /// 
+    ///
     /// Data logger handle.
     pub fn NT_StartConnectionDataLog(
         inst: NT_Inst,
@@ -1536,7 +1536,7 @@ extern "C" {
     /// Stops logging connection changes to a DataLog.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - logger: data logger handle
     pub fn NT_StopConnectionDataLog(logger: NT_ConnectionDataLogger);
 
@@ -1678,11 +1678,11 @@ extern "C" {
     /// specific number of bytes to allocate. That is calculated internally.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `size`: The number of elements the array will contain.
     ///
     /// # Returns
-    /// 
+    ///
     /// The allocated double array.
     ///
     /// After use, the array should be freed using the `NT_FreeDoubleArray()` function.
@@ -1691,35 +1691,35 @@ extern "C" {
     /// Frees an array of chars.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `v_char`: Pointer to the char array to free.
     pub fn NT_FreeCharArray(v_char: *mut std::ffi::c_char);
 
     /// Frees an array of booleans.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `v_boolean`: Pointer to the boolean array to free.
     pub fn NT_FreeBooleanArray(v_boolean: *mut bool);
 
     /// Frees an array of integers.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `v_int`: Pointer to the integer array to free.
     pub fn NT_FreeIntegerArray(v_int: *mut i64);
 
     /// Frees an array of floats.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `v_float`: Pointer to the float array to free.
     pub fn NT_FreeFloatArray(v_float: *mut f32);
 
     /// Frees an array of doubles.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `v_double`: Pointer to the double array to free.
     pub fn NT_FreeDoubleArray(v_double: *mut f64);
 
@@ -1727,11 +1727,11 @@ extern "C" {
     /// Note that one of the type options is "unassigned".
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `value`: The NT_Value struct to get the type from.
     ///
     /// # Returns
-    /// 
+    ///
     /// The type of the value, or unassigned if null.
     pub fn NT_GetValueType(value: *const NT_Value) -> NT_Type;
 
@@ -1739,13 +1739,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `value`: NT_Value struct to get the boolean from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `v_boolean`: Returns the boolean assigned to the name.
     ///
     /// # Returns
-    /// 
+    ///
     /// 1 if successful, or 0 if value is null or not a boolean.
     pub fn NT_GetValueBoolean(
         value: *const NT_Value,
@@ -1757,13 +1757,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `value`: NT_Value struct to get the int from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `v_int`: Returns the int assigned to the name.
     ///
     /// # Returns
-    /// 
+    ///
     /// 1 if successful, or 0 if value is null or not an int.
     pub fn NT_GetValueInteger(
         value: *const NT_Value,
@@ -1775,13 +1775,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `value`: NT_Value struct to get the float from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `v_float`: Returns the float assigned to the name.
     ///
     /// # Returns
-    /// 
+    ///
     /// 1 if successful, or 0 if value is null or not a float.
     pub fn NT_GetValueFloat(
         value: *const NT_Value,
@@ -1793,13 +1793,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `value`: NT_Value struct to get the double from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `v_double`: Returns the double assigned to the name.
     ///
     /// # Returns
-    /// 
+    ///
     /// 1 if successful, or 0 if value is null or not a double.
     pub fn NT_GetValueDouble(
         value: *const NT_Value,
@@ -1811,13 +1811,13 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns 0.
     ///
     /// # Parameters
-    /// 
+    ///
     /// - `value`: NT_Value struct to get the string from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `str_len`: Returns the length of the string.
     ///
     /// # Returns
-    /// 
+    ///
     /// Pointer to the string (UTF-8), or null if error.
     ///
     /// It is the caller's responsibility to free the string once it's no longer

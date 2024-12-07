@@ -11,3 +11,4 @@ edition = "2021"
 
 [dependencies]
 libntcore = { path = "../libntcore", version = "0.1.0" }
+typed-builder = "0.20.0"

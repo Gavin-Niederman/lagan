@@ -1,7 +1,8 @@
 use std::{thread::sleep, time::Duration, u32};
 
 use libntcore::{
-    NT_AddLogger, NT_Event, NT_GetDefaultInstance, NT_GetEntry, NT_GetEntryValue, NT_IsConnected, NT_SetServer, NT_StartClient4, NT_Type, NT_Value, WPI_String
+    NT_AddLogger, NT_Event, NT_GetDefaultInstance, NT_GetEntry, NT_GetEntryValue, NT_IsConnected,
+    NT_SetServer, NT_StartClient4, NT_Type, NT_Value, WPI_String,
 };
 
 extern "C" fn log_cb(_data: *mut std::ffi::c_void, event: *const NT_Event) {
