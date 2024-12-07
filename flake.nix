@@ -9,8 +9,24 @@
       let pkgs = nixpkgs.legacyPackages.${system};
       in {
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ libcxx openssl pkg-config ];
-          LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
+          buildInputs = with pkgs; [
+            libcxx
+            openssl
+            pkg-config
+            fontconfig
+            libGL
+            freetype
+            wayland
+            libxkbcommon
+          ];
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
+            stdenv.cc.cc.lib
+            fontconfig
+            libGL
+            freetype
+            wayland
+            libxkbcommon
+          ]);
         };
       });
 }
