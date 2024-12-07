@@ -1,6 +1,6 @@
 use std::{ffi::CString, net::SocketAddr};
 
-use libntcore::{
+use ntcore_sys::{
     NT_CreateInstance, NT_DestroyInstance, NT_Inst, NT_SetServer, NT_StartClient3, NT_StartClient4,
     NT_StopClient, WPI_String,
 };

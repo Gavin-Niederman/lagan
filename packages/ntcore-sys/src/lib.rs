@@ -176,7 +176,7 @@ c_enum! {
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct NT_ValueDataRaw {
-    pub data: *const std::ffi::c_void,
+    pub data: *const u8,
     pub size: usize,
 }
 

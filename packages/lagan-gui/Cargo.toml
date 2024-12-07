@@ -4,6 +4,7 @@ authors = ["Gavin Niederman <gavinniederman@gmail.com>"]
 description = "A NetworkTables explorer similar to glass"
 keywords = ["ntcore", "networktables", "frc", "wpilib"]
 categories = ["api-bindings", "external-ffi-bindings", "network-programming"]
+repository = "https://github.com/gavin-niederman/lagan"
 license = "MIT"
 version = "0.1.0"
 edition = "2021"

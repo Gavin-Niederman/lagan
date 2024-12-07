@@ -1,6 +1,6 @@
 use std::{ffi::CString, net::SocketAddr};
 
-use libntcore::{
+use ntcore_sys::{
     NT_DestroyInstance, NT_GetDefaultInstance, NT_Inst, NT_StartServer, NT_StopServer, WPI_String,
 };
 use typed_builder::TypedBuilder;

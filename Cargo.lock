@@ -2633,7 +2633,7 @@ dependencies = [
 name = "lagan"
 version = "0.1.0"
 dependencies = [
- "libntcore",
+ "ntcore-sys",
  "typed-builder",
 ]
 
@@ -2689,10 +2689,6 @@ dependencies = [
  "cfg-if",
  "windows-targets 0.52.6",
 ]
-
-[[package]]
-name = "libntcore"
-version = "0.1.0"
 
 [[package]]
 name = "libredox"
@@ -2935,6 +2931,10 @@ dependencies = [
  "walkdir",
  "windows-sys 0.45.0",
 ]
+
+[[package]]
+name = "ntcore-sys"
+version = "0.2.0"
 
 [[package]]
 name = "nu-ansi-term"

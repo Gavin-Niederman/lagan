@@ -4,11 +4,12 @@ authors = ["Gavin Niederman <gavinniederman@gmail.com>"]
 description = "Safe bindings for ntcore"
 keywords = ["ntcore", "networktables", "frc", "wpilib"]
 categories = ["api-bindings", "external-ffi-bindings", "network-programming"]
+repository = "https://github.com/gavin-niederman/lagan"
 license = "MIT"
 readme = "../../README.md"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-libntcore = { path = "../libntcore", version = "0.1.0" }
+ntcore-sys = { path = "../ntcore-sys", version = "0.2.0" }
 typed-builder = "0.20.0"
