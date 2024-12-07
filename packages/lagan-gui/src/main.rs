@@ -40,7 +40,7 @@ const THEME: Theme = {
 pub enum NetworkTablesState {
     None,
     Client(NetworkTablesVersion),
-    Server(NetworkTablesVersion),
+    Server,
 }
 
 fn main() {
@@ -131,8 +131,7 @@ fn NetworkTablesStateSelector(state: Signal<NetworkTablesState, UnsyncStorage>) 
         NetworkTablesState::None => "None",
         NetworkTablesState::Client(NetworkTablesVersion::V3) => "Client (V3)",
         NetworkTablesState::Client(NetworkTablesVersion::V4) => "Client (V4)",
-        NetworkTablesState::Server(NetworkTablesVersion::V3) => "Server (V3)",
-        NetworkTablesState::Server(NetworkTablesVersion::V4) => "Server (V4)",
+        NetworkTablesState::Server => "Server",
     };
 
     rsx! {
@@ -150,15 +149,9 @@ fn NetworkTablesStateSelector(state: Signal<NetworkTablesState, UnsyncStorage>) 
                 }
                 MenuButton {
                     label {
-                        "Server (V3)"
+                        "Server"
                     }
-                    onclick: move |_| state.set(NetworkTablesState::Server(NetworkTablesVersion::V3))
-                }
-                MenuButton {
-                    label {
-                        "Server (V4)"
-                    }
-                    onclick: move |_| state.set(NetworkTablesState::Server(NetworkTablesVersion::V4))
+                    onclick: move |_| state.set(NetworkTablesState::Server)
                 }
                 MenuButton {
                     label {
