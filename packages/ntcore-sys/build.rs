@@ -3,6 +3,8 @@ use std::process::Command;
 fn main() {
     let out_dir = std::env::var("OUT_DIR").unwrap();
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let release = std::env::var("PROFILE").unwrap() == "release";
+    let maybe_d = if release { "" } else { "d" };
 
     cmake::Config::new(format!("{manifest_dir}/allwpilib"))
         .define("WITH_CSCORE", "OFF")
@@ -24,7 +26,7 @@ fn main() {
 
     println!("cargo:rustc-link-lib=stdc++");
     println!("cargo:rustc-link-search=native={out_dir}/lib");
-    println!("cargo:rustc-link-lib=ntcored");
-    println!("cargo:rustc-link-lib=wpiutild");
-    println!("cargo:rustc-link-lib=wpinetd");
+    println!("cargo:rustc-link-lib=ntcore{maybe_d}");
+    println!("cargo:rustc-link-lib=wpiutil{maybe_d}");
+    println!("cargo:rustc-link-lib=wpinet{maybe_d}");
 }
