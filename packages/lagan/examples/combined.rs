@@ -26,8 +26,8 @@ fn main() {
     let foo = client.entry("/data");
 
     for i in 0.. {
-        foo_server.set_value(NetworkTablesValue::String(format!("{:?}", vec![0; i]))).unwrap();
-        info!("{:?}", foo.value_string());
+        foo_server.set_value(NetworkTablesValue::StringArray(vec!["wassup".to_owned(); i])).unwrap();
+        info!("{:?}", foo.value_string_array());
         sleep(std::time::Duration::from_millis(200));
     }
 }

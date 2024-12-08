@@ -25,11 +25,12 @@ fn main() {
 
         let mut name: WPI_String = c"/foo".into();
         let foo = NT_GetEntry(inst, &raw mut name);
+        let mut val: WPI_String = c"yarr".into();
         let val = NT_Value {
-            r#type: NT_Type::NT_DOUBLE,
+            r#type: NT_Type::NT_STRING,
             last_change: NT_Now(),
             server_time: NT_Now(),
-            data: NT_ValueData { v_double: 3.14 },
+            data: NT_ValueData { v_string: val },
         };
         NT_SetEntryValue(foo, &raw const val);
         NT_SetEntryFlags(foo, NT_EntryFlags::NT_PERSISTENT);

@@ -7,7 +7,7 @@ use nt_types::{
 use ntcore_sys::{
     NT_Entry, NT_EntryFlags, NT_Event, NT_GetEntry, NT_GetEntryType, NT_GetEntryValue, NT_Inst,
     NT_LogLevel, NT_LogMessage, NT_Now, NT_SetEntryFlags, NT_SetEntryValue, NT_Value, NT_ValueData,
-    NT_ValueDataArray, NT_ValueDataRaw, WPI_String,
+    NT_ValueDataArray, WPI_String,
 };
 use snafu::Snafu;
 
@@ -114,7 +114,8 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
         let current_value = self.raw_value();
         let current_type = current_value.data.value_type();
 
-        if current_type != NetworkTablesValueType::Unassigned && current_type != value.value_type() {
+        if current_type != NetworkTablesValueType::Unassigned && current_type != value.value_type()
+        {
             return Err(NetworkTablesEntryError::InvalidType {
                 current_type,
                 given_type: value.value_type(),
@@ -132,9 +133,24 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
             new_value.server_time = timestamp;
         }
 
+        macro_rules! set_simple_array {
+            ($field:ident => $union:ident) => {
+                {
+                    new_value.data = NT_ValueData {
+                        $union: NT_ValueDataArray {
+                            arr: $field.as_ptr(),
+                            size: $field.len() as _,
+                        },
+                    };
+                    let status = unsafe { NT_SetEntryValue(self.handle(), &raw const new_value) };
+                    debug_assert_eq!(status, 1);
+                    return Ok(());
+                }
+            };
+        }
+
         //Safety: This raw data cannot be used after the values it points to are dropped.
-        //Safety: for this reason, the types boolean array and string array have to be used inside the match arms
-        //Safety: because they need to be converted to nt types.
+        //Safety: for this reason, the types that store pointers have to be used inside the match arms.
         let raw_value_data = match value {
             NetworkTablesValue::Unassigned => todo!(),
             NetworkTablesValue::Bool(value) => NT_ValueData {
@@ -143,38 +159,45 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
             NetworkTablesValue::I64(value) => NT_ValueData { v_int: value },
             NetworkTablesValue::F32(value) => NT_ValueData { v_float: value },
             NetworkTablesValue::F64(value) => NT_ValueData { v_double: value },
-            NetworkTablesValue::String(value) => NT_ValueData {
-                v_string: WPI_String {
-                    str: value.as_ptr().cast(),
-                    len: value.len() as _,
-                },
+            NetworkTablesValue::String(string) => {
+                let string = CString::new(string).unwrap();
+                let wpi_string = WPI_String::from(string.as_c_str());
+                new_value.data = NT_ValueData {
+                    v_string: wpi_string,
+                };
+                let status = unsafe { NT_SetEntryValue(self.handle(), &raw const new_value) };
+                debug_assert_eq!(status, 1);
+                return Ok(());
+            }
+            NetworkTablesValue::Raw(data) => set_simple_array!(data => v_raw),
+            NetworkTablesValue::F64Array(array) => set_simple_array!(array => arr_double),
+            NetworkTablesValue::F32Array(array) => set_simple_array!(array => arr_float),
+            NetworkTablesValue::I64Array(array) => set_simple_array!(array => arr_int),
+            NetworkTablesValue::BoolArray(array) => {
+                let bools = array.into_iter().map(|b| b.into()).collect::<Vec<_>>();
+                new_value.data = NT_ValueData {
+                    arr_boolean: NT_ValueDataArray {
+                        arr: bools.as_ptr(),
+                        size: bools.len() as _,
+                    },
+                };
+                let status = unsafe { NT_SetEntryValue(self.handle(), &raw const new_value) };
+                debug_assert_eq!(status, 1);
+                return Ok(());
             },
-            NetworkTablesValue::Raw(value) => NT_ValueData {
-                v_raw: NT_ValueDataRaw {
-                    data: value.as_ptr(),
-                    size: value.len() as _,
-                },
+            NetworkTablesValue::StringArray(array) => {
+                let c_strings = array.into_iter().map(|s| CString::new(s).unwrap()).collect::<Vec<_>>();
+                let wpi_strings = c_strings.iter().map(|s| WPI_String::from(s.as_c_str())).collect::<Vec<_>>();
+                new_value.data = NT_ValueData {
+                    arr_string: NT_ValueDataArray {
+                        arr: wpi_strings.as_ptr(),
+                        size: wpi_strings.len() as _,
+                    },
+                };
+                let status = unsafe { NT_SetEntryValue(self.handle(), &raw const new_value) };
+                debug_assert_eq!(status, 1);
+                return Ok(());
             },
-            NetworkTablesValue::F64Array(value) => NT_ValueData {
-                arr_double: NT_ValueDataArray {
-                    arr: value.as_ptr(),
-                    size: value.len() as _,
-                },
-            },
-            NetworkTablesValue::F32Array(value) => NT_ValueData {
-                arr_float: NT_ValueDataArray {
-                    arr: value.as_ptr(),
-                    size: value.len() as _,
-                },
-            },
-            NetworkTablesValue::I64Array(value) => NT_ValueData {
-                arr_int: NT_ValueDataArray {
-                    arr: value.as_ptr(),
-                    size: value.len() as _,
-                },
-            },
-            NetworkTablesValue::BoolArray(value) => todo!(),
-            NetworkTablesValue::StringArray(value) => todo!(),
         };
 
         new_value.data = raw_value_data;

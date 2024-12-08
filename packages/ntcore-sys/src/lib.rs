@@ -157,14 +157,6 @@ bitflags! {
     }
 }
 
-/// Not included in the original header file, but required because of rust union limitations.
-#[repr(C)]
-#[derive(Copy, Clone, Debug)]
-pub struct NT_ValueDataRaw {
-    pub data: *const u8,
-    pub size: usize,
-}
-
 /// Not included in the original ntcore header file, but required because of rust union limitations.
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
@@ -181,7 +173,7 @@ pub union NT_ValueData {
     pub v_float: f32,
     pub v_double: f64,
     pub v_string: WPI_String,
-    pub v_raw: NT_ValueDataRaw,
+    pub v_raw: NT_ValueDataArray<u8>,
     pub arr_boolean: NT_ValueDataArray<NT_Bool>,
     pub arr_double: NT_ValueDataArray<f64>,
     pub arr_float: NT_ValueDataArray<f32>,

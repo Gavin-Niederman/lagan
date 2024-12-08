@@ -202,7 +202,7 @@ impl From<NT_Value> for NetworkTablesRawValue {
             }
             NT_Type::NT_RAW => {
                 let data = unsafe {
-                    slice::from_raw_parts(value.data.v_raw.data, value.data.v_raw.size as _)
+                    slice::from_raw_parts(value.data.v_raw.arr, value.data.v_raw.size as _)
                 }
                 .to_vec();
                 NetworkTablesValue::Raw(data)
