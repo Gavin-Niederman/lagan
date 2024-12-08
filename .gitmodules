@@ -1,0 +1,3 @@
+[submodule "packages/ntcore-sys/allwpilib"]
+	path = packages/ntcore-sys/allwpilib
+	url = https://github.com/wpilibsuite/allwpilib

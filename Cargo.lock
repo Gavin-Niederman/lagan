@@ -784,6 +784,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmake"
+version = "0.1.52"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c682c223677e0e5b6b7f63a64b9351844c3f1b1678a68b7ee617e30fb082620e"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2935,6 +2944,9 @@ dependencies = [
 [[package]]
 name = "ntcore-sys"
 version = "0.2.0"
+dependencies = [
+ "cmake",
+]
 
 [[package]]
 name = "nu-ansi-term"

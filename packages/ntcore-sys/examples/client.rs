@@ -1,6 +1,6 @@
 use std::{thread::sleep, time::Duration, u32};
 
-use libntcore::{
+use ntcore_sys::{
     NT_AddLogger, NT_Event, NT_GetDefaultInstance, NT_GetEntry, NT_GetEntryValue, NT_IsConnected,
     NT_SetServer, NT_StartClient4, NT_Type, NT_Value, WPI_String,
 };
