@@ -38,7 +38,7 @@ pub type NT_Publisher = NT_Handle;
 ///
 /// @param data            data pointer provided to callback creation function
 /// @param event           event info
-pub type NT_ListenerCallback = extern "C" fn(*mut std::ffi::c_void, *const NT_Event);
+pub type NT_ListenerCallback = unsafe extern "C" fn(*mut std::ffi::c_void, *const NT_Event);
 
 macro_rules! c_enum {
     {$(

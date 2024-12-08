@@ -1,8 +1,8 @@
 use std::{ffi::CString, net::SocketAddr};
 
 use ntcore_sys::{
-    NT_CreateInstance, NT_DestroyInstance, NT_Inst, NT_SetServer, NT_StartClient3, NT_StartClient4,
-    NT_StopClient, WPI_String,
+    NT_AddLogger, NT_CreateInstance, NT_DestroyInstance, NT_Inst, NT_SetServer, NT_StartClient3,
+    NT_StartClient4, NT_StopClient, WPI_String,
 };
 use typed_builder::TypedBuilder;
 
@@ -24,6 +24,14 @@ impl Client {
         //TODO: Are these WPI_String pointers supposed to be static?
         //TODO: When can the identity and name safely be dropped?
         unsafe {
+            NT_AddLogger(
+                instance,
+                0,
+                u32::MAX,
+                std::ptr::null_mut(),
+                crate::log_callback,
+            );
+
             let identity = CString::new(address.ip().to_string()).unwrap();
             let identity = WPI_String::from(identity.as_c_str());
             match version {

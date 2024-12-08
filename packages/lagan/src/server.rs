@@ -1,7 +1,7 @@
 use std::{ffi::CString, net::SocketAddr};
 
 use ntcore_sys::{
-    NT_DestroyInstance, NT_GetDefaultInstance, NT_Inst, NT_StartServer, NT_StopServer, WPI_String,
+    NT_AddLogger, NT_DestroyInstance, NT_GetDefaultInstance, NT_Inst, NT_StartServer, NT_StopServer, WPI_String
 };
 use typed_builder::TypedBuilder;
 
@@ -32,6 +32,14 @@ impl Server {
 
         //TODO: Are these WPI_String pointers supposed to be static?
         unsafe {
+            NT_AddLogger(
+                instance,
+                0,
+                u32::MAX,
+                std::ptr::null_mut(),
+                crate::log_callback,
+            );
+
             let persist_filename = CString::new(persist_filename.as_ref()).unwrap();
             let persist_filename = WPI_String::from(persist_filename.as_c_str());
 
