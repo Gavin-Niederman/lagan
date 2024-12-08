@@ -6,6 +6,8 @@ use ntcore_sys::{
 };
 use typed_builder::TypedBuilder;
 
+use crate::Instance;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Server {
     instance: NT_Inst,
@@ -65,6 +67,15 @@ impl Server {
 
     pub fn builder() -> ServerOptionsBuilder {
         ServerOptions::builder()
+    }
+}
+
+impl Instance for Server {
+    unsafe fn handle(&self) -> NT_Inst {
+        self.instance
+    }
+    fn is_server(&self) -> bool {
+        true
     }
 }
 

@@ -14,6 +14,8 @@ edition = "2021"
 log = "0.4.22"
 ntcore-sys = { path = "../ntcore-sys", version = "0.2.0" }
 typed-builder = "0.20.0"
+bitflags = "2.6.0"
+snafu = "0.8.5"
 
 [dev-dependencies]
 simplelog = "0.12.2"

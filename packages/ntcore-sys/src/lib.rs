@@ -540,7 +540,7 @@ extern "C" {
     /// # Returns
     ///
     /// entry value array; returns NULL and count=0 if no new values
-    pub fn NT_ReadQueueValue(subentry: NT_Handle, count: *mut isize) -> *mut NT_Value;
+    pub fn NT_ReadQueueValue(subentry: NT_Handle, count: *mut usize) -> *mut NT_Value;
 
     /// Read Entry Queue.
     ///
@@ -560,7 +560,7 @@ extern "C" {
     pub fn NT_ReadQueueValueType(
         subentry: NT_Handle,
         types: u32,
-        count: *mut isize,
+        count: *mut usize,
     ) -> *mut NT_Value;
 
     /// Get Published Topic Handles.
@@ -585,7 +585,7 @@ extern "C" {
         inst: NT_Inst,
         prefix: *const WPI_String,
         types: u32,
-        count: *mut isize,
+        count: *mut usize,
     ) -> *mut NT_Topic;
 
     /// Get Published Topic Handles.
@@ -610,8 +610,8 @@ extern "C" {
         inst: NT_Inst,
         prefix: *const WPI_String,
         types: *const WPI_String,
-        types_len: isize,
-        count: *mut isize,
+        types_len: usize,
+        count: *mut usize,
     ) -> *mut NT_Topic;
 
     /// Get Topics.
@@ -661,8 +661,8 @@ extern "C" {
         inst: NT_Inst,
         prefix: *const WPI_String,
         types: *const WPI_String,
-        types_len: isize,
-        count: *mut isize,
+        types_len: usize,
+        count: *mut usize,
     ) -> *mut NT_TopicInfo;
 
     /// Gets Topic Information.

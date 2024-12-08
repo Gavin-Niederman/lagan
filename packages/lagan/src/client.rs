@@ -58,6 +58,9 @@ impl Instance for Client {
     unsafe fn handle(&self) -> NT_Inst {
         self.instance
     }
+    fn is_server(&self) -> bool {
+        false
+    }
 }
 
 impl Drop for Client {
