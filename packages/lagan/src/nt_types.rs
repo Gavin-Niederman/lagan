@@ -138,9 +138,7 @@ impl From<NT_Value> for NetworkTablesRawValue {
         let server_time = NetworkTablesInstant::from_micros(value.server_time as _);
         let data = match value.r#type {
             NT_Type::NT_UNASSIGNED => NetworkTablesValue::Unassigned,
-            NT_Type::NT_BOOLEAN => {
-                NetworkTablesValue::Bool(unsafe { value.data.v_boolean == 1 })
-            }
+            NT_Type::NT_BOOLEAN => NetworkTablesValue::Bool(unsafe { value.data.v_boolean == 1 }),
             NT_Type::NT_DOUBLE => NetworkTablesValue::F64(unsafe { value.data.v_double }),
             NT_Type::NT_STRING => {
                 let string = unsafe {

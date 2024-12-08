@@ -1,7 +1,7 @@
 #![allow(non_camel_case_types, non_snake_case)]
 
-use std::{ffi::CStr, fmt::Debug};
 use bitflags::bitflags;
+use std::{ffi::CStr, fmt::Debug};
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, Hash)]
