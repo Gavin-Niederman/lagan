@@ -37,7 +37,7 @@ impl Server {
                 0,
                 u32::MAX,
                 std::ptr::null_mut(),
-                crate::log_callback,
+                crate::default_log_callback,
             );
 
             let persist_filename = CString::new(persist_filename.as_ref()).unwrap();

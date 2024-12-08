@@ -1,12 +1,12 @@
 use std::{ffi::CString, net::SocketAddr};
 
 use ntcore_sys::{
-    NT_AddLogger, NT_CreateInstance, NT_DestroyInstance, NT_Inst, NT_SetServer, NT_StartClient3,
-    NT_StartClient4, NT_StopClient, WPI_String,
+    NT_AddLogger, NT_CreateInstance, NT_DestroyInstance, NT_GetEntry, NT_Inst, NT_SetServer,
+    NT_StartClient3, NT_StartClient4, NT_StopClient, WPI_String,
 };
 use typed_builder::TypedBuilder;
 
-use crate::NetworkTablesVersion;
+use crate::{Instance, NetworkTablesVersion};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Client {
@@ -29,7 +29,7 @@ impl Client {
                 0,
                 u32::MAX,
                 std::ptr::null_mut(),
-                crate::log_callback,
+                crate::default_log_callback,
             );
 
             let identity = CString::new(address.ip().to_string()).unwrap();
@@ -51,6 +51,12 @@ impl Client {
 
     pub fn builder() -> ClientOptionsBuilder {
         ClientOptions::builder()
+    }
+}
+
+impl Instance for Client {
+    unsafe fn handle(&self) -> NT_Inst {
+        self.instance
     }
 }
 

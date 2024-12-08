@@ -78,8 +78,39 @@ impl SubAssign<Duration> for NetworkTablesInstant {
     }
 }
 
-pub enum NetworkTablesValueData {
-    Unasigned,
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum NetworkTablesValueType {
+    Unassigned,
+    Bool,
+    I64,
+    F32,
+    F64,
+    String,
+    Raw,
+    BoolArray,
+    F64Array,
+    F32Array,
+    I64Array,
+    StringArray,
+}
+impl From<NT_Type> for NetworkTablesValueType {
+    fn from(value: NT_Type) -> Self {
+        match value {
+            NT_Type::NT_UNASSIGNED => Self::Unassigned,
+            NT_Type::NT_BOOLEAN => Self::Bool,
+            NT_Type::NT_DOUBLE => Self::F64,
+            NT_Type::NT_STRING => Self::String,
+            NT_Type::NT_RAW => Self::Raw,
+            NT_Type::NT_BOOLEAN_ARRAY => Self::BoolArray,
+            NT_Type::NT_RPC => todo!(),
+            _ => unreachable!("Invalid NT_Type"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum NetworkTablesValue {
+    Unassigned,
     Bool(bool),
     I64(i64),
     F32(f32),
@@ -93,23 +124,24 @@ pub enum NetworkTablesValueData {
     StringArray(Vec<String>),
 }
 
-pub struct NetworkTablesValue {
-    pub data: NetworkTablesValueData,
+#[derive(Debug, Clone, PartialEq)]
+pub struct NetworkTablesRawValue {
+    pub data: NetworkTablesValue,
     pub last_change: NetworkTablesInstant,
     pub server_time: NetworkTablesInstant,
 }
 
-impl From<NT_Value> for NetworkTablesValue {
+impl From<NT_Value> for NetworkTablesRawValue {
     // Oh boy, this is going to be a fun one
     fn from(value: NT_Value) -> Self {
         let last_change = NetworkTablesInstant::from_micros(value.last_change as _);
         let server_time = NetworkTablesInstant::from_micros(value.server_time as _);
         let data = match value.r#type {
-            NT_Type::NT_UNASSIGNED => NetworkTablesValueData::Unasigned,
+            NT_Type::NT_UNASSIGNED => NetworkTablesValue::Unassigned,
             NT_Type::NT_BOOLEAN => {
-                NetworkTablesValueData::Bool(unsafe { value.data.v_boolean == 1 })
+                NetworkTablesValue::Bool(unsafe { value.data.v_boolean == 1 })
             }
-            NT_Type::NT_DOUBLE => NetworkTablesValueData::F64(unsafe { value.data.v_double }),
+            NT_Type::NT_DOUBLE => NetworkTablesValue::F64(unsafe { value.data.v_double }),
             NT_Type::NT_STRING => {
                 let string = unsafe {
                     String::from_utf8_lossy(slice::from_raw_parts(
@@ -118,14 +150,14 @@ impl From<NT_Value> for NetworkTablesValue {
                     ))
                 }
                 .into_owned();
-                NetworkTablesValueData::String(string)
+                NetworkTablesValue::String(string)
             }
             NT_Type::NT_RAW => {
                 let data = unsafe {
                     slice::from_raw_parts(value.data.v_raw.data, value.data.v_raw.size as _)
                 }
                 .to_vec();
-                NetworkTablesValueData::Raw(data)
+                NetworkTablesValue::Raw(data)
             }
             NT_Type::NT_BOOLEAN_ARRAY => {
                 let data = unsafe {
@@ -137,7 +169,7 @@ impl From<NT_Value> for NetworkTablesValue {
                 .iter()
                 .map(|b| *b == 1)
                 .collect::<Vec<_>>();
-                NetworkTablesValueData::BoolArray(data)
+                NetworkTablesValue::BoolArray(data)
             }
             NT_Type::NT_RPC => todo!(),
             _ => unreachable!("Invalid NT_Type"),
