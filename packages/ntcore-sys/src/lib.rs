@@ -1,6 +1,7 @@
 #![allow(non_camel_case_types, non_snake_case)]
 
 use std::{ffi::CStr, fmt::Debug};
+use bitflags::bitflags;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, Hash)]
@@ -60,28 +61,6 @@ macro_rules! c_enum {
                     pub const $var: $name = $name($val);
                 )+
             }
-            impl ::std::ops::BitOr for $name {
-                type Output = Self;
-                fn bitor(self, rhs: Self) -> Self {
-                    $name(self.0 | rhs.0)
-                }
-            }
-            impl ::std::ops::BitOrAssign for $name {
-                fn bitor_assign(&mut self, rhs: Self) {
-                    self.0 |= rhs.0;
-                }
-            }
-            impl ::std::ops::BitAnd for $name {
-                type Output = Self;
-                fn bitand(self, rhs: Self) -> Self {
-                    $name(self.0 & rhs.0)
-                }
-            }
-            impl ::std::ops::BitAndAssign for $name {
-                fn bitand_assign(&mut self, rhs: Self) {
-                    self.0 &= rhs.0;
-                }
-            }
         )+
     };
 }
@@ -102,13 +81,6 @@ c_enum! {
         NT_FLOAT = 0x200,
         NT_INTEGER_ARRAY = 0x400,
         NT_FLOAT_ARRAY = 0x800
-    }
-
-    /// NetworkTables entry flags.
-    pub enum NT_EntryFlags: u32 {
-        NT_PERSISTENT = 0x01,
-        NT_RETAINED = 0x02,
-        NT_UNCACHED = 0x04
     }
 
     /// NetworkTables logging levels.
@@ -139,36 +111,49 @@ c_enum! {
         /// Running in local-only mode
         NT_NET_MODE_LOCAL = 0x10,
     }
+}
 
+bitflags! {
     /// Event notification flags.
-    pub enum NT_EventFlags: u32 {
-        NT_EVENT_NONE = 0,
+    #[repr(transparent)]
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+    pub struct NT_EventFlags: u32 {
+        const NT_EVENT_NONE = 0;
         /// Initial listener addition.
-        NT_EVENT_IMMEDIATE = 0x01,
+        const NT_EVENT_IMMEDIATE = 0x01;
         /// Client connected (on server, any client connected).
-        NT_EVENT_CONNECTED = 0x02,
+        const NT_EVENT_CONNECTED = 0x02;
         /// Client disconnected (on server, any client disconnected).
-        NT_EVENT_DISCONNECTED = 0x04,
+        const NT_EVENT_DISCONNECTED = 0x04;
         /// Any connection event (connect or disconnect).
-        NT_EVENT_CONNECTION = 0x02 |  0x04,
+        const NT_EVENT_CONNECTION = 0x02|  0x04;
         /// New topic published.
-        NT_EVENT_PUBLISH = 0x08,
+        const NT_EVENT_PUBLISH = 0x08;
         /// Topic unpublished.
-        NT_EVENT_UNPUBLISH = 0x10,
+        const NT_EVENT_UNPUBLISH = 0x10;
         /// Topic properties changed.
-        NT_EVENT_PROPERTIES = 0x20,
+        const NT_EVENT_PROPERTIES = 0x20;
         /// Any topic event (publish, unpublish, or properties changed).
-        NT_EVENT_TOPIC = 0x08 | 0x10 | 0x20,
+        const NT_EVENT_TOPIC = 0x08| 0x10 | 0x20;
         /// Topic value updated (via network).
-        NT_EVENT_VALUE_REMOTE = 0x40,
+        const NT_EVENT_VALUE_REMOTE = 0x40;
         /// Topic value updated (local).
-        NT_EVENT_VALUE_LOCAL = 0x80,
+        const NT_EVENT_VALUE_LOCAL = 0x80;
         /// Topic value updated (network or local).
-        NT_EVENT_VALUE_ALL = 0x40 | 0x80,
+        const NT_EVENT_VALUE_ALL = 0x40 | 0x80;
         /// Log message.
-        NT_EVENT_LOGMESSAGE = 0x100,
+        const NT_EVENT_LOGMESSAGE = 0x100;
         /// Time synchronized with server.
-        NT_EVENT_TIMESYNC = 0x200,
+        const NT_EVENT_TIMESYNC = 0x200;
+    }
+
+    /// NetworkTables entry flags.
+    #[repr(transparent)]
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+    pub struct NT_EntryFlags: u32 {
+        const NT_PERSISTENT = 0x01;
+        const NT_RETAINED = 0x02;
+        const NT_UNCACHED = 0x04;
     }
 }
 
