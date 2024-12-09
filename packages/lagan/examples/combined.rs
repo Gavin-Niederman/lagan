@@ -23,7 +23,7 @@ fn main() {
 
     let foo_server = server.entry("/data");
     foo_server.set_value_string("aa").unwrap();
-    foo_server.set_flags(NetworkTablesEntryFlags::PERSISTENT).unwrap();
+    foo_server.set_flags(ValueFlags::PERSISTENT).unwrap();
     let foo = client.entry("/data");
 
     loop {

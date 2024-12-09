@@ -1,18 +1,16 @@
 use std::ffi::CString;
 
 use ntcore_sys::{
-    NT_Entry, NT_EntryFlags, NT_GetEntryType, NT_GetEntryValue, NT_Now, NT_SetEntryFlags,
-    NT_SetEntryValue, NT_Value, NT_ValueData, NT_ValueDataArray, WPI_String,
+    NT_Entry, NT_EntryFlags, NT_GetEntryType, NT_GetEntryValue, NT_Now, NT_Release, NT_SetEntryFlags, NT_SetEntryValue, NT_Value, NT_ValueData, NT_ValueDataArray, WPI_String
 };
 use snafu::{ensure, Snafu};
 
 use crate::{
-    nt_types::{NetworkTablesEntryFlags, NetworkTablesRawValue, NetworkTablesValueType},
-    Instance, NetworkTablesValue,
+    nt_types::{ValueFlags, RawValue, ValueType}, Instance, Value
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct NetworkTablesEntry<'a, I: Instance + ?Sized> {
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub struct Entry<'a, I: Instance + ?Sized> {
     pub(crate) instance: &'a I,
     pub(crate) handle: NT_Entry,
     pub(crate) name: String,
@@ -25,7 +23,7 @@ macro_rules! typed_value_getter {
             /// Returns `None` if the type of the entry is not of the specified type.
             pub fn $ident(&self) -> Option<$ty> {
                 match self.value() {
-                    NetworkTablesValue::$variant(value) => Some(value),
+                    Value::$variant(value) => Some(value),
                     _ => None,
                 }
             }
@@ -40,15 +38,15 @@ macro_rules! typed_value_setter {
             /// # Errors
             ///
             /// - [`NetworkTablesEntryError::InvalidType`] if the type of the entry is not of the specified type.
-            pub fn $ident(&self, value: $ty) -> Result<(), NetworkTablesEntryError> {
-                self.set_value(NetworkTablesValue::$variant(value))
+            pub fn $ident(&self, value: $ty) -> Result<(), EntryError> {
+                self.set_value(Value::$variant(value))
             }
         )*
     };
 }
 
-impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
-    pub fn value(&self) -> NetworkTablesValue {
+impl<I: Instance + ?Sized> Entry<'_, I> {
+    pub fn value(&self) -> Value {
         self.raw_value().data
     }
 
@@ -66,17 +64,17 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
         value_string_array: StringArray => Vec<String>
     }
 
-    pub fn value_type(&self) -> NetworkTablesValueType {
+    pub fn value_type(&self) -> ValueType {
         unsafe { NT_GetEntryType(self.handle()) }.into()
     }
 
-    pub fn set_value(&self, value: NetworkTablesValue) -> Result<(), NetworkTablesEntryError> {
+    pub fn set_value(&self, value: Value) -> Result<(), EntryError> {
         let current_value = self.raw_value();
         let current_type = current_value.data.value_type();
 
-        if current_type != NetworkTablesValueType::Unassigned && current_type != value.value_type()
+        if current_type != ValueType::Unassigned && current_type != value.value_type()
         {
-            return Err(NetworkTablesEntryError::InvalidType {
+            return Err(EntryError::InvalidType {
                 current_type,
                 given_type: value.value_type(),
             });
@@ -110,14 +108,14 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
         //Safety: This raw data cannot be used after the values it points to are dropped.
         //Safety: for this reason, the types that store pointers have to be used inside the match arms.
         let raw_value_data = match value {
-            NetworkTablesValue::Unassigned => todo!(),
-            NetworkTablesValue::Bool(value) => NT_ValueData {
+            Value::Unassigned => todo!(),
+            Value::Bool(value) => NT_ValueData {
                 v_boolean: value as _,
             },
-            NetworkTablesValue::I64(value) => NT_ValueData { v_int: value },
-            NetworkTablesValue::F32(value) => NT_ValueData { v_float: value },
-            NetworkTablesValue::F64(value) => NT_ValueData { v_double: value },
-            NetworkTablesValue::String(string) => {
+            Value::I64(value) => NT_ValueData { v_int: value },
+            Value::F32(value) => NT_ValueData { v_float: value },
+            Value::F64(value) => NT_ValueData { v_double: value },
+            Value::String(string) => {
                 let string = CString::new(string).unwrap();
                 let wpi_string = WPI_String::from(string.as_c_str());
                 new_value.data = NT_ValueData {
@@ -127,11 +125,11 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
                 debug_assert_eq!(status, 1);
                 return Ok(());
             }
-            NetworkTablesValue::Raw(data) => set_simple_array!(data => v_raw),
-            NetworkTablesValue::F64Array(array) => set_simple_array!(array => arr_double),
-            NetworkTablesValue::F32Array(array) => set_simple_array!(array => arr_float),
-            NetworkTablesValue::I64Array(array) => set_simple_array!(array => arr_int),
-            NetworkTablesValue::BoolArray(array) => {
+            Value::Raw(data) => set_simple_array!(data => v_raw),
+            Value::F64Array(array) => set_simple_array!(array => arr_double),
+            Value::F32Array(array) => set_simple_array!(array => arr_float),
+            Value::I64Array(array) => set_simple_array!(array => arr_int),
+            Value::BoolArray(array) => {
                 let bools = array.into_iter().map(|b| b.into()).collect::<Vec<_>>();
                 new_value.data = NT_ValueData {
                     arr_boolean: NT_ValueDataArray {
@@ -143,7 +141,7 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
                 debug_assert_eq!(status, 1);
                 return Ok(());
             }
-            NetworkTablesValue::StringArray(array) => {
+            Value::StringArray(array) => {
                 let c_strings = array
                     .into_iter()
                     .map(|s| CString::new(s).unwrap())
@@ -190,11 +188,11 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
     /// # Errors
     ///
     /// - [`NetworkTablesEntryError::InvalidType`] if the type of the entry is not of the specified type.
-    pub fn set_value_string(&self, value: impl AsRef<str>) -> Result<(), NetworkTablesEntryError> {
-        self.set_value(NetworkTablesValue::String(value.as_ref().to_owned()))
+    pub fn set_value_string(&self, value: impl AsRef<str>) -> Result<(), EntryError> {
+        self.set_value(Value::String(value.as_ref().to_owned()))
     }
 
-    pub fn set_flags(&self, flags: NetworkTablesEntryFlags) -> Result<(), NetworkTablesEntryError> {
+    pub fn set_flags(&self, flags: ValueFlags) -> Result<(), EntryError> {
         ensure!(self.is_assigned(), UnassignedFlagsSnafu);
         unsafe {
             NT_SetEntryFlags(self.handle(), NT_EntryFlags::from_bits_retain(flags.bits()));
@@ -203,7 +201,7 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
     }
 
     pub fn is_assigned(&self) -> bool {
-        !matches!(self.value_type(), NetworkTablesValueType::Unassigned)
+        !matches!(self.value_type(), ValueType::Unassigned)
     }
     pub fn is_unassigned(&self) -> bool {
         !self.is_assigned()
@@ -213,7 +211,7 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
         &self.name
     }
 
-    pub fn raw_value(&self) -> NetworkTablesRawValue {
+    pub fn raw_value(&self) -> RawValue {
         let mut raw_value = unsafe { std::mem::zeroed() };
         unsafe {
             NT_GetEntryValue(self.handle(), &raw mut raw_value);
@@ -229,14 +227,22 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
     }
 }
 
+impl<I: Instance + ?Sized> Drop for Entry<'_, I> {
+    fn drop(&mut self) {
+        unsafe {
+            NT_Release(self.handle());
+        }
+    }
+}
+
 /// Errors that can occur when interacting with a NetworkTables entry.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Snafu)]
-pub enum NetworkTablesEntryError {
+pub enum EntryError {
     /// Attempted to set an entry to a value of a different type than it currently is.
     #[snafu(display("Attempted to set an entry to a value of type {given_type:?} while it was of type {current_type:?}."))]
     InvalidType {
-        current_type: NetworkTablesValueType,
-        given_type: NetworkTablesValueType,
+        current_type: ValueType,
+        given_type: ValueType,
     },
 
     /// Attempted to set the flags on an unassigned entry.

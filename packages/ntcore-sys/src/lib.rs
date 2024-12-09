@@ -160,7 +160,7 @@ bitflags! {
 /// Not included in the original ntcore header file, but required because of rust union limitations.
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
-pub struct NT_ValueDataArray<T: Copy + Clone + Debug> {
+pub struct NT_ValueDataArray<T> {
     pub arr: *const T,
     pub size: usize,
 }

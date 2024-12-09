@@ -22,10 +22,10 @@ fn main() {
     let sin = client.entry("/sin");
 
     sin.set_value_f64(0.0_f64.sin()).unwrap();
-    sin.set_flags(NetworkTablesEntryFlags::PERSISTENT).unwrap();
+    sin.set_flags(ValueFlags::PERSISTENT).unwrap();
 
     foo.set_value_bool(true).unwrap();
-    foo.set_flags(NetworkTablesEntryFlags::PERSISTENT).unwrap();
+    foo.set_flags(ValueFlags::PERSISTENT).unwrap();
 
     for i in 0.. {
         sin.set_value_f64((i as f64 / 2.0).sin()).unwrap();

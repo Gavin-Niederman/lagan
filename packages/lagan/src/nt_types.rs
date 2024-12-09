@@ -83,7 +83,7 @@ impl SubAssign<Duration> for NetworkTablesInstant {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum NetworkTablesValueType {
+pub enum ValueType {
     Unassigned,
     Bool,
     I64,
@@ -97,7 +97,7 @@ pub enum NetworkTablesValueType {
     I64Array,
     StringArray,
 }
-impl From<NT_Type> for NetworkTablesValueType {
+impl From<NT_Type> for ValueType {
     fn from(value: NT_Type) -> Self {
         match value {
             NT_Type::NT_UNASSIGNED | NT_Type::NT_RPC => Self::Unassigned,
@@ -116,27 +116,27 @@ impl From<NT_Type> for NetworkTablesValueType {
         }
     }
 }
-impl From<NetworkTablesValueType> for NT_Type {
-    fn from(value: NetworkTablesValueType) -> Self {
+impl From<ValueType> for NT_Type {
+    fn from(value: ValueType) -> Self {
         match value {
-            NetworkTablesValueType::Unassigned => NT_Type::NT_UNASSIGNED,
-            NetworkTablesValueType::Bool => NT_Type::NT_BOOLEAN,
-            NetworkTablesValueType::I64 => NT_Type::NT_INTEGER,
-            NetworkTablesValueType::F32 => NT_Type::NT_FLOAT,
-            NetworkTablesValueType::F64 => NT_Type::NT_DOUBLE,
-            NetworkTablesValueType::String => NT_Type::NT_STRING,
-            NetworkTablesValueType::Raw => NT_Type::NT_RAW,
-            NetworkTablesValueType::BoolArray => NT_Type::NT_BOOLEAN_ARRAY,
-            NetworkTablesValueType::F64Array => NT_Type::NT_DOUBLE_ARRAY,
-            NetworkTablesValueType::F32Array => NT_Type::NT_FLOAT_ARRAY,
-            NetworkTablesValueType::I64Array => NT_Type::NT_INTEGER_ARRAY,
-            NetworkTablesValueType::StringArray => NT_Type::NT_STRING_ARRAY,
+            ValueType::Unassigned => NT_Type::NT_UNASSIGNED,
+            ValueType::Bool => NT_Type::NT_BOOLEAN,
+            ValueType::I64 => NT_Type::NT_INTEGER,
+            ValueType::F32 => NT_Type::NT_FLOAT,
+            ValueType::F64 => NT_Type::NT_DOUBLE,
+            ValueType::String => NT_Type::NT_STRING,
+            ValueType::Raw => NT_Type::NT_RAW,
+            ValueType::BoolArray => NT_Type::NT_BOOLEAN_ARRAY,
+            ValueType::F64Array => NT_Type::NT_DOUBLE_ARRAY,
+            ValueType::F32Array => NT_Type::NT_FLOAT_ARRAY,
+            ValueType::I64Array => NT_Type::NT_INTEGER_ARRAY,
+            ValueType::StringArray => NT_Type::NT_STRING_ARRAY,
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum NetworkTablesValue {
+pub enum Value {
     Unassigned,
     Bool(bool),
     I64(i64),
@@ -150,43 +150,43 @@ pub enum NetworkTablesValue {
     I64Array(Vec<i64>),
     StringArray(Vec<String>),
 }
-impl NetworkTablesValue {
-    pub fn value_type(&self) -> NetworkTablesValueType {
+impl Value {
+    pub fn value_type(&self) -> ValueType {
         match self {
-            Self::Unassigned => NetworkTablesValueType::Unassigned,
-            Self::Bool(_) => NetworkTablesValueType::Bool,
-            Self::I64(_) => NetworkTablesValueType::I64,
-            Self::F32(_) => NetworkTablesValueType::F32,
-            Self::F64(_) => NetworkTablesValueType::F64,
-            Self::String(_) => NetworkTablesValueType::String,
-            Self::Raw(_) => NetworkTablesValueType::Raw,
-            Self::BoolArray(_) => NetworkTablesValueType::BoolArray,
-            Self::F64Array(_) => NetworkTablesValueType::F64Array,
-            Self::F32Array(_) => NetworkTablesValueType::F32Array,
-            Self::I64Array(_) => NetworkTablesValueType::I64Array,
-            Self::StringArray(_) => NetworkTablesValueType::StringArray,
+            Self::Unassigned => ValueType::Unassigned,
+            Self::Bool(_) => ValueType::Bool,
+            Self::I64(_) => ValueType::I64,
+            Self::F32(_) => ValueType::F32,
+            Self::F64(_) => ValueType::F64,
+            Self::String(_) => ValueType::String,
+            Self::Raw(_) => ValueType::Raw,
+            Self::BoolArray(_) => ValueType::BoolArray,
+            Self::F64Array(_) => ValueType::F64Array,
+            Self::F32Array(_) => ValueType::F32Array,
+            Self::I64Array(_) => ValueType::I64Array,
+            Self::StringArray(_) => ValueType::StringArray,
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct NetworkTablesRawValue {
-    pub data: NetworkTablesValue,
+pub struct RawValue {
+    pub data: Value,
     pub last_change: NetworkTablesInstant,
     pub server_time: NetworkTablesInstant,
 }
 
-impl From<NT_Value> for NetworkTablesRawValue {
+impl From<NT_Value> for RawValue {
     // Oh boy, this is going to be a fun one
     fn from(value: NT_Value) -> Self {
         let last_change = NetworkTablesInstant::from_micros(value.last_change as _);
         let server_time = NetworkTablesInstant::from_micros(value.server_time as _);
         let data = match value.r#type {
-            NT_Type::NT_UNASSIGNED | NT_Type::NT_RPC => NetworkTablesValue::Unassigned,
-            NT_Type::NT_BOOLEAN => NetworkTablesValue::Bool(unsafe { value.data.v_boolean == 1 }),
-            NT_Type::NT_INTEGER => NetworkTablesValue::I64(unsafe { value.data.v_int }),
-            NT_Type::NT_FLOAT => NetworkTablesValue::F32(unsafe { value.data.v_float }),
-            NT_Type::NT_DOUBLE => NetworkTablesValue::F64(unsafe { value.data.v_double }),
+            NT_Type::NT_UNASSIGNED | NT_Type::NT_RPC => Value::Unassigned,
+            NT_Type::NT_BOOLEAN => Value::Bool(unsafe { value.data.v_boolean == 1 }),
+            NT_Type::NT_INTEGER => Value::I64(unsafe { value.data.v_int }),
+            NT_Type::NT_FLOAT => Value::F32(unsafe { value.data.v_float }),
+            NT_Type::NT_DOUBLE => Value::F64(unsafe { value.data.v_double }),
             NT_Type::NT_STRING => {
                 let string = unsafe {
                     String::from_utf8_lossy(slice::from_raw_parts(
@@ -195,14 +195,14 @@ impl From<NT_Value> for NetworkTablesRawValue {
                     ))
                 }
                 .into_owned();
-                NetworkTablesValue::String(string)
+                Value::String(string)
             }
             NT_Type::NT_RAW => {
                 let data = unsafe {
                     slice::from_raw_parts(value.data.v_raw.arr, value.data.v_raw.size as _)
                 }
                 .to_vec();
-                NetworkTablesValue::Raw(data)
+                Value::Raw(data)
             }
             NT_Type::NT_BOOLEAN_ARRAY => {
                 let data = unsafe {
@@ -214,7 +214,7 @@ impl From<NT_Value> for NetworkTablesRawValue {
                 .iter()
                 .map(|b| *b == 1)
                 .collect::<Vec<_>>();
-                NetworkTablesValue::BoolArray(data)
+                Value::BoolArray(data)
             }
             NT_Type::NT_DOUBLE_ARRAY => {
                 let data = unsafe {
@@ -224,21 +224,21 @@ impl From<NT_Value> for NetworkTablesRawValue {
                     )
                 }
                 .to_vec();
-                NetworkTablesValue::F64Array(data)
+                Value::F64Array(data)
             }
             NT_Type::NT_FLOAT_ARRAY => {
                 let data = unsafe {
                     slice::from_raw_parts(value.data.arr_float.arr, value.data.arr_float.size as _)
                 }
                 .to_vec();
-                NetworkTablesValue::F32Array(data)
+                Value::F32Array(data)
             }
             NT_Type::NT_INTEGER_ARRAY => {
                 let data = unsafe {
                     slice::from_raw_parts(value.data.arr_int.arr, value.data.arr_int.size as _)
                 }
                 .to_vec();
-                NetworkTablesValue::I64Array(data)
+                Value::I64Array(data)
             }
             NT_Type::NT_STRING_ARRAY => {
                 let data = unsafe {
@@ -253,7 +253,7 @@ impl From<NT_Value> for NetworkTablesRawValue {
                         .into_owned()
                 })
                 .collect::<Vec<_>>();
-                NetworkTablesValue::StringArray(data)
+                Value::StringArray(data)
             }
             _ => unreachable!("Invalid NT_Type"),
         };
@@ -268,7 +268,7 @@ impl From<NT_Value> for NetworkTablesRawValue {
 
 bitflags! {
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-    pub struct NetworkTablesEntryFlags: u32 {
+    pub struct ValueFlags: u32 {
         const PERSISTENT = 1;
         const RETAINED = 2;
         const UNCACHED = 4;
