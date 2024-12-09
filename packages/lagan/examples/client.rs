@@ -14,7 +14,6 @@ fn main() {
     .unwrap();
 
     let client = Client::builder()
-        .version(NetworkTablesVersion::V4)
         .address("127.0.0.1:5810".parse().unwrap())
         .build();
     println!("{:?}", client);

@@ -78,6 +78,7 @@ pub struct ClientOptions {
     #[builder(default = None, setter(transform = |name: impl AsRef<str>| Some(name.as_ref().to_string())))]
     pub server_name: Option<String>,
     pub address: SocketAddr,
+    #[builder(default)]
     pub version: NetworkTablesVersion,
 }
 impl From<ClientOptions> for Client {
