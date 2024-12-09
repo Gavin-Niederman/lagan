@@ -1,6 +1,6 @@
 use std::thread::sleep;
 
-use lagan::{client::Client, nt_types::NetworkTablesEntryFlags, server::Server, Instance};
+use lagan::prelude::*;
 use log::{info, LevelFilter};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 

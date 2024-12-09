@@ -1,4 +1,4 @@
-use lagan::server::Server;
+use lagan::prelude::*;
 use log::LevelFilter;
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
