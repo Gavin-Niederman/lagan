@@ -22,11 +22,11 @@ fn main() {
         .build();
 
     let foo_server = server.entry("/data");
-    foo_server.set_flags(NetworkTablesEntryFlags::PERSISTENT);
+    foo_server.set_value_string("aa").unwrap();
+    foo_server.set_flags(NetworkTablesEntryFlags::PERSISTENT).unwrap();
     let foo = client.entry("/data");
 
-    for i in 0.. {
-        foo_server.set_value_string("aa").unwrap();
+    loop {
         info!("{:?}", foo.value_string());
         sleep(std::time::Duration::from_millis(200));
     }

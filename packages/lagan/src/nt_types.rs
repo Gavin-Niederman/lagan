@@ -5,9 +5,7 @@ use std::{
 };
 
 use bitflags::bitflags;
-use ntcore_sys::{
-    NT_Now, NT_Type, NT_Value,
-};
+use ntcore_sys::{NT_Now, NT_Type, NT_Value};
 
 /// A monotonic clock timestamp that is used to timestamp network tables values.
 /// Instants have microsecond precision.
@@ -102,7 +100,7 @@ pub enum NetworkTablesValueType {
 impl From<NT_Type> for NetworkTablesValueType {
     fn from(value: NT_Type) -> Self {
         match value {
-            NT_Type::NT_UNASSIGNED => Self::Unassigned,
+            NT_Type::NT_UNASSIGNED | NT_Type::NT_RPC => Self::Unassigned,
             NT_Type::NT_BOOLEAN => Self::Bool,
             NT_Type::NT_INTEGER => Self::I64,
             NT_Type::NT_FLOAT => Self::F32,
@@ -114,7 +112,6 @@ impl From<NT_Type> for NetworkTablesValueType {
             NT_Type::NT_FLOAT_ARRAY => Self::F32Array,
             NT_Type::NT_INTEGER_ARRAY => Self::I64Array,
             NT_Type::NT_STRING_ARRAY => Self::StringArray,
-            NT_Type::NT_RPC => todo!(),
             _ => unreachable!("Invalid NT_Type"),
         }
     }
@@ -185,7 +182,7 @@ impl From<NT_Value> for NetworkTablesRawValue {
         let last_change = NetworkTablesInstant::from_micros(value.last_change as _);
         let server_time = NetworkTablesInstant::from_micros(value.server_time as _);
         let data = match value.r#type {
-            NT_Type::NT_UNASSIGNED => NetworkTablesValue::Unassigned,
+            NT_Type::NT_UNASSIGNED | NT_Type::NT_RPC => NetworkTablesValue::Unassigned,
             NT_Type::NT_BOOLEAN => NetworkTablesValue::Bool(unsafe { value.data.v_boolean == 1 }),
             NT_Type::NT_INTEGER => NetworkTablesValue::I64(unsafe { value.data.v_int }),
             NT_Type::NT_FLOAT => NetworkTablesValue::F32(unsafe { value.data.v_float }),
@@ -258,7 +255,6 @@ impl From<NT_Value> for NetworkTablesRawValue {
                 .collect::<Vec<_>>();
                 NetworkTablesValue::StringArray(data)
             }
-            NT_Type::NT_RPC => todo!(),
             _ => unreachable!("Invalid NT_Type"),
         };
 

@@ -9,7 +9,7 @@ use ntcore_sys::{
     NT_LogLevel, NT_LogMessage, NT_Now, NT_SetEntryFlags, NT_SetEntryValue, NT_Value, NT_ValueData,
     NT_ValueDataArray, WPI_String,
 };
-use snafu::Snafu;
+use snafu::{ensure, Snafu};
 
 pub mod client;
 pub mod nt_types;
@@ -235,7 +235,7 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
         set_value_i64_array: Vec<i64> => I64Array,
         set_value_string_array: Vec<String> => StringArray
     }
-    
+
     /// Sets the value of this entry to the given value if it is of the type of the given value.
     /// 
     /// # Errors
@@ -245,10 +245,15 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
         self.set_value(NetworkTablesValue::String(value.as_ref().to_owned()))
     }
 
-    pub fn set_flags(&self, flags: NetworkTablesEntryFlags) {
+    pub fn set_flags(&self, flags: NetworkTablesEntryFlags) -> Result<(), NetworkTablesEntryError> {
+        ensure!(
+            self.is_assigned(),
+            UnassignedFlagsSnafu
+        );
         unsafe {
             NT_SetEntryFlags(self.handle(), NT_EntryFlags::from_bits_retain(flags.bits()));
         }
+        Ok(())
     }
 
     pub fn is_assigned(&self) -> bool {
@@ -287,6 +292,9 @@ pub enum NetworkTablesEntryError {
         current_type: NetworkTablesValueType,
         given_type: NetworkTablesValueType,
     },
+
+    /// Attempted to set the flags on an unassigned entry.
+    UnassignedFlags,
 }
 
 pub trait Instance {

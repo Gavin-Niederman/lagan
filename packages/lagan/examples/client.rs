@@ -1,6 +1,6 @@
 use std::thread::sleep;
 
-use lagan::{client::Client, Instance};
+use lagan::{client::Client, nt_types::NetworkTablesEntryFlags, Instance};
 use log::{info, LevelFilter};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
@@ -19,9 +19,19 @@ fn main() {
     println!("{:?}", client);
 
     let foo = client.entry("/foo");
+    let sin = client.entry("/sin");
 
-    loop {
+    sin.set_value_f64(0.0_f64.sin()).unwrap();
+    sin.set_flags(NetworkTablesEntryFlags::PERSISTENT).unwrap();
+
+    foo.set_value_bool(true).unwrap();
+    foo.set_flags(NetworkTablesEntryFlags::PERSISTENT).unwrap();
+
+    for i in 0.. {
+        sin.set_value_f64((i as f64 / 20.0).sin()).unwrap();
+        info!("{:?}", sin.value());
+        foo.set_value_bool(i % 2 == 0).unwrap();
         info!("{:?}", foo.value());
-        sleep(std::time::Duration::from_millis(200));
+        sleep(std::time::Duration::from_millis(20));
     }
 }

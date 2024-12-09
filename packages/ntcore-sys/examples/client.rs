@@ -7,7 +7,7 @@ use ntcore_sys::{
 
 extern "C" fn log_cb(_data: *mut std::ffi::c_void, event: *const NT_Event) {
     let message = unsafe { std::ffi::CStr::from_ptr((*event).data.logMessage.message.str) };
-    // println!("Log: {}", message.to_string_lossy());
+    println!("Log: {}", message.to_string_lossy());
 }
 
 fn main() {
