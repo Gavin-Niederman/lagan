@@ -25,7 +25,7 @@ fn main() {
 
         let mut name: WPI_String = c"/foo".into();
         let foo = NT_GetEntry(inst, &raw mut name);
-        let mut val: WPI_String = c"yarr".into();
+        let val: WPI_String = c"yarr".into();
         let val = NT_Value {
             r#type: NT_Type::NT_STRING,
             last_change: NT_Now(),
