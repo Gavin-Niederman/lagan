@@ -1,6 +1,6 @@
 use std::thread::sleep;
 
-use lagan::{client::Client, nt_types::NetworkTablesValue, server::Server, Instance, NetworkTablesVersion};
+use lagan::{client::Client, nt_types::NetworkTablesEntryFlags, server::Server, Instance, NetworkTablesVersion};
 use log::{info, LevelFilter};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
@@ -23,11 +23,12 @@ fn main() {
         .build();
 
     let foo_server = server.entry("/data");
+    foo_server.set_flags(NetworkTablesEntryFlags::PERSISTENT);
     let foo = client.entry("/data");
 
     for i in 0.. {
-        foo_server.set_value(NetworkTablesValue::StringArray(vec!["wassup".to_owned(); i])).unwrap();
-        info!("{:?}", foo.value_string_array());
+        foo_server.set_value_string("aa").unwrap();
+        info!("{:?}", foo.value_string());
         sleep(std::time::Duration::from_millis(200));
     }
 }

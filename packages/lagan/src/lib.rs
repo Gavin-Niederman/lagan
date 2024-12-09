@@ -86,6 +86,20 @@ macro_rules! typed_value_getter {
         )*
     };
 }
+macro_rules! typed_value_setter {
+    {$($ident:ident: $ty:ty => $variant:ident),*} => {
+        $(
+            /// Sets the value of this entry to the given value if it is of the type of the given value.
+            /// 
+            /// # Errors
+            /// 
+            /// - [`NetworkTablesEntryError::InvalidType`] if the type of the entry is not of the specified type.
+            pub fn $ident(&self, value: $ty) -> Result<(), NetworkTablesEntryError> {
+                self.set_value(NetworkTablesValue::$variant(value))
+            }
+        )*
+    };
+}
 
 impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
     pub fn value(&self) -> NetworkTablesValue {
@@ -206,6 +220,29 @@ impl<I: Instance + ?Sized> NetworkTablesEntry<'_, I> {
         debug_assert_eq!(status, 1);
 
         Ok(())
+    }
+
+
+    typed_value_setter! {
+        set_value_bool: bool => Bool,
+        set_value_i64: i64 => I64,
+        set_value_f32: f32 => F32,
+        set_value_f64: f64 => F64,
+        set_value_raw: Vec<u8> => Raw,
+        set_value_bool_array: Vec<bool> => BoolArray,
+        set_value_f64_array: Vec<f64> => F64Array,
+        set_value_f32_array: Vec<f32> => F32Array,
+        set_value_i64_array: Vec<i64> => I64Array,
+        set_value_string_array: Vec<String> => StringArray
+    }
+    
+    /// Sets the value of this entry to the given value if it is of the type of the given value.
+    /// 
+    /// # Errors
+    /// 
+    /// - [`NetworkTablesEntryError::InvalidType`] if the type of the entry is not of the specified type.
+    pub fn set_value_string(&self, value: impl AsRef<str>) -> Result<(), NetworkTablesEntryError> {
+        self.set_value(NetworkTablesValue::String(value.as_ref().to_owned()))
     }
 
     pub fn set_flags(&self, flags: NetworkTablesEntryFlags) {
