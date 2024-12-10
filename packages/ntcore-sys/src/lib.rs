@@ -36,8 +36,10 @@ pub type NT_Publisher = NT_Handle;
 
 /// Event listener callback function.
 ///
-/// @param data            data pointer provided to callback creation function
-/// @param event           event info
+/// # Parameters
+///
+/// - `data`: data pointer provided to callback creation function
+/// - `event`: event info
 pub type NT_ListenerCallback = unsafe extern "C" fn(*mut std::ffi::c_void, *const NT_Event);
 
 macro_rules! c_enum {
@@ -360,6 +362,154 @@ pub struct NT_PubSubOptions {
     /// unless another subscription overlaps with this one, and the subscription
     /// will not appear in metatopics.
     pub hidden: NT_Bool,
+}
+
+/// Timestamped Boolean.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NT_TimestampedBoolean {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: NT_Bool,
+}
+
+/// Timestamped Integer.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NT_TimestampedInteger {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: i64,
+}
+
+/// Timestamped Float.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct NT_TimestampedFloat {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: f32,
+}
+
+/// Timestamped Double.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub struct NT_TimestampedDouble {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: f32,
+}
+
+/// Timestamped String.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, Hash)]
+pub struct NT_TimestampedString {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: WPI_String,
+}
+
+
+/// Timestamped Raw.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NT_TimestampedRaw {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: *mut u8,
+    /// Value length.
+    len: usize,
+}
+
+/// Timestamped Boolean Array.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NT_TimestampedBooleanArray {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: *mut NT_Bool,
+    /// Value length.
+    len: usize,
+}
+
+/// Timestamped Integer Array.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NT_TimestampedIntegerArray {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: *mut i64,
+    /// Value length.
+    len: usize,
+}
+
+
+/// Timestamped Float Array.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NT_TimestampedFloatArray {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: *mut f32,
+    /// Value length.
+    len: usize,
+}
+
+
+/// Timestamped Double Array.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NT_TimestampedDoubleArray {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: *mut f64,
+    /// Value length.
+    len: usize,
+}
+
+
+/// Timestamped String Array.
+#[repr(C)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NT_TimestampedStringArray {
+    /// Time in local time base
+    time: i64,
+    /// Time in server time base. May be 0 or 1 for locally set values.
+    serverTime: i64,
+    /// Value.
+    value: *mut WPI_String,
+    /// Value length.
+    len: usize,
 }
 
 extern "C" {
@@ -1307,6 +1457,7 @@ extern "C" {
     /// server IP address.
     ///
     /// # Parameters
+    ///
     /// - `inst`: Instance handle.
     /// - `port`: Server port to use in combination with IP from DS.
     pub fn NT_StartDSClient(inst: NT_Inst, port: u32);
@@ -1361,12 +1512,15 @@ extern "C" {
     /// `NT_DisposeConnectionInfoArray` function is useful for this purpose.
     pub fn NT_GetConnections(inst: NT_Inst, count: *mut usize) -> *mut NT_ConnectionInfo;
 
-    /**
-     * Return whether or not the instance is connected to another node.
-     *
-     * @param inst  instance handle
-     * @return True if connected.
-     */
+    /// Return whether or not the instance is connected to another node.
+    ///
+    /// # Parameters
+    ///
+    /// - `inst`: instance handle
+    ///
+    /// # Returns
+    ///
+    /// True if connected.
     pub fn NT_IsConnected(inst: NT_Inst) -> NT_Bool;
 
     /// Get the time offset between server time and local time. Add this value to
@@ -1378,6 +1532,7 @@ extern "C" {
     /// "time sync" event.
     ///
     /// # Parameters
+    ///
     /// - `inst`: Instance handle.
     /// - `valid`: Set to true if the return value is valid, false otherwise (output).
     ///
@@ -1388,6 +1543,7 @@ extern "C" {
     /// Frees value memory.
     ///
     /// # Parameters
+    ///
     /// - `value`: Value to free.
     pub fn NT_DisposeValue(value: *mut NT_Value);
 
@@ -1395,12 +1551,14 @@ extern "C" {
     /// Sets type to NT_UNASSIGNED and clears the rest of the struct.
     ///
     /// # Parameters
+    ///
     /// - `value`: Value to initialize.
     pub fn NT_InitValue(value: *mut NT_Value);
 
     /// Frees an array of NT_Values.
     ///
     /// # Parameters
+    ///
     /// - `arr`: Pointer to the value array to free.
     /// - `count`: Number of elements in the array.
     ///
@@ -1412,6 +1570,7 @@ extern "C" {
     /// Disposes a connection info array.
     ///
     /// # Parameters
+    ///
     /// - `arr`: Pointer to the array to dispose.
     /// - `count`: Number of elements in the array.
     pub fn NT_DisposeConnectionInfoArray(arr: *mut NT_ConnectionInfo, count: usize);
@@ -1419,6 +1578,7 @@ extern "C" {
     /// Disposes a topic info array.
     ///
     /// # Parameters
+    ///
     /// - `arr`: Pointer to the array to dispose.
     /// - `count`: Number of elements in the array.
     pub fn NT_DisposeTopicInfoArray(arr: *mut NT_TopicInfo, count: usize);
@@ -1426,12 +1586,14 @@ extern "C" {
     /// Disposes a single topic info (as returned by NT_GetTopicInfo).
     ///
     /// # Parameters
+    ///
     /// - `info`: Pointer to the info to dispose.
     pub fn NT_DisposeTopicInfo(info: *mut NT_TopicInfo);
 
     /// Disposes an event array.
     ///
     /// # Parameters
+    ///
     /// - `arr`: Pointer to the array to dispose.
     /// - `count`: Number of elements in the array.
     pub fn NT_DisposeEventArray(arr: *mut NT_Event, count: usize);
@@ -1439,6 +1601,7 @@ extern "C" {
     /// Disposes a single event.
     ///
     /// # Parameters
+    ///
     /// - `event`: Pointer to the event to dispose.
     pub fn NT_DisposeEvent(event: *mut NT_Event);
 
@@ -1603,6 +1766,7 @@ extern "C" {
     /// specific number of bytes to allocate. That is calculated internally.
     ///
     /// # Parameters
+    ///
     /// - `size`: The number of elements the array will contain.
     ///
     /// # Returns
@@ -1616,6 +1780,7 @@ extern "C" {
     /// specific number of bytes to allocate. That is calculated internally.
     ///
     /// # Parameters
+    ///
     /// - `size`: The number of elements the array will contain.
     ///
     /// # Returns
@@ -1629,6 +1794,7 @@ extern "C" {
     /// specific number of bytes to allocate. That is calculated internally.
     ///
     /// # Parameters
+    ///
     /// - `size`: The number of elements the array will contain.
     ///
     /// # Returns
@@ -1642,6 +1808,7 @@ extern "C" {
     /// specific number of bytes to allocate. That is calculated internally.
     ///
     /// # Parameters
+    ///
     /// - `size`: The number of elements the array will contain.
     ///
     /// # Returns
@@ -1811,6 +1978,7 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns null.
     ///
     /// # Parameters
+    ///
     /// - `value`: NT_Value struct to get the string from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `raw_len`: Returns the length of the string.
@@ -1832,6 +2000,7 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns null.
     ///
     /// # Parameters
+    ///
     /// - `value`: NT_Value struct to get the boolean array from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `arr_size`: Returns the number of elements in the array.
@@ -1853,6 +2022,7 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns null.
     ///
     /// # Parameters
+    ///
     /// - `value`: NT_Value struct to get the int array from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `arr_size`: Returns the number of elements in the array.
@@ -1874,6 +2044,7 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns null.
     ///
     /// # Parameters
+    ///
     /// - `value`: NT_Value struct to get the float array from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `arr_size`: Returns the number of elements in the array.
@@ -1895,6 +2066,7 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns null.
     ///
     /// # Parameters
+    ///
     /// - `value`: NT_Value struct to get the double array from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `arr_size`: Returns the number of elements in the array.
@@ -1916,6 +2088,7 @@ extern "C" {
     /// If the NT_Value is null, or is assigned to a different type, returns null.
     ///
     /// # Parameters
+    ///
     /// - `value`: NT_Value struct to get the struct WPI_String array from.
     /// - `last_change`: Returns time in ms since the last change in the value.
     /// - `arr_size`: Returns the number of elements in the array.
@@ -1934,4 +2107,1052 @@ extern "C" {
         last_change: *mut u64,
         arr_size: *mut usize,
     ) -> *mut WPI_String;
+
+    ///  Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    pub fn NT_SetBoolean(pubentry: NT_Handle, time: i64, value: NT_Bool) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    pub fn NT_SetDefaultBoolean(pubentry: NT_Handle, defaultValue: NT_Bool) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetBoolean(subentry: NT_Handle, defaultValue: NT_Bool) -> NT_Bool;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicBoolean(
+        subentry: NT_Handle,
+        defaultValue: NT_Bool,
+        value: *mut NT_TimestampedBoolean,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicBoolean).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedBoolean(value: *mut NT_TimestampedBoolean);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueBoolean(subentry: NT_Handle, len: *mut usize) -> *mut NT_TimestampedBoolean;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueBoolean).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueBoolean(arr: *mut NT_TimestampedBoolean, len: usize);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueValuesBoolean(subentry: NT_Handle, len: *mut usize) -> *mut NT_Bool;
+    ///  Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    pub fn NT_SetInteger(pubentry: NT_Handle, time: i64, value: i64) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    pub fn NT_SetDefaultInteger(pubentry: NT_Handle, defaultValue: i64) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetInteger(subentry: NT_Handle, defaultValue: i64) -> i64;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicInteger(
+        subentry: NT_Handle,
+        defaultValue: i64,
+        value: *mut NT_TimestampedInteger,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicInteger).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedInteger(value: *mut NT_TimestampedInteger);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueInteger(subentry: NT_Handle, len: *mut usize) -> *mut NT_TimestampedInteger;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueInteger).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueInteger(arr: *mut NT_TimestampedInteger, len: usize);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueValuesInteger(subentry: NT_Handle, len: *mut usize) -> *mut i64;
+    ///  Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    pub fn NT_SetFloat(pubentry: NT_Handle, time: i64, value: f32) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    pub fn NT_SetDefaultFloat(pubentry: NT_Handle, defaultValue: f32) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetFloat(subentry: NT_Handle, defaultValue: f32) -> f32;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicFloat(
+        subentry: NT_Handle,
+        defaultValue: f32,
+        value: *mut NT_TimestampedFloat,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicFloat).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedFloat(value: *mut NT_TimestampedFloat);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueFloat(subentry: NT_Handle, len: *mut usize) -> *mut NT_TimestampedFloat;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueFloat).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueFloat(arr: *mut NT_TimestampedFloat, len: usize);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueValuesFloat(subentry: NT_Handle, len: *mut usize) -> *mut f32;
+    ///  Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    pub fn NT_SetDouble(pubentry: NT_Handle, time: i64, value: f64) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    pub fn NT_SetDefaultDouble(pubentry: NT_Handle, defaultValue: f64) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetDouble(subentry: NT_Handle, defaultValue: f64) -> f64;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicDouble(
+        subentry: NT_Handle,
+        defaultValue: f64,
+        value: *mut NT_TimestampedDouble,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicDouble).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedDouble(value: *mut NT_TimestampedDouble);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueDouble(subentry: NT_Handle, len: *mut usize) -> *mut NT_TimestampedDouble;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueDouble).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueDouble(arr: *mut NT_TimestampedDouble, len: usize);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueValuesDouble(subentry: NT_Handle, len: *mut usize) -> *mut f64;
+    ///  Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    pub fn NT_SetString(pubentry: NT_Handle, time: i64, value: *const WPI_String) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    pub fn NT_SetDefaultString(pubentry: NT_Handle, defaultValue: *const WPI_String) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `value`: returned value (output)
+    ///
+    pub fn NT_GetString(
+        subentry: NT_Handle,
+        defaultValue: *const WPI_String,
+        value: *mut WPI_String,
+    );
+    /// Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicString(
+        subentry: NT_Handle,
+        defaultValue: *const WPI_String,
+        value: *mut NT_TimestampedString,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicString).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedString(value: *mut NT_TimestampedString);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueString(subentry: NT_Handle, len: *mut usize) -> *mut NT_TimestampedString;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueString).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueString(arr: *mut NT_TimestampedString, len: usize);
+    /// Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    /// - `len`: length of value
+    ///
+    pub fn NT_SetRaw(pubentry: NT_Handle, time: i64, value: *const u8, len: usize) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    /// - `defaultValueLen`: length of default value
+    ///
+    pub fn NT_SetDefaultRaw(
+        pubentry: NT_Handle,
+        defaultValue: *const u8,
+        defaultValueLen: usize,
+    ) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    /// - `len`: length of returned value (output)
+    ///
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetRaw(
+        subentry: NT_Handle,
+        defaultValue: *const u8,
+        defaultValueLen: usize,
+        len: *mut usize,
+    ) -> *mut u8;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicRaw(
+        subentry: NT_Handle,
+        defaultValue: *const u8,
+        defaultValueLen: usize,
+        value: *mut NT_TimestampedRaw,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicRaw).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedRaw(value: *mut NT_TimestampedRaw);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueRaw(subentry: NT_Handle, len: *mut usize) -> *mut NT_TimestampedRaw;
+    /// Frees a timestamped array of values (as returned by NT_ReadQueueRaw).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueRaw(arr: *mut NT_TimestampedRaw, len: usize);
+    /// Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    /// - `len`: length of value
+    ///
+    pub fn NT_SetBooleanArray(
+        pubentry: NT_Handle,
+        time: i64,
+        value: *const NT_Bool,
+        len: usize,
+    ) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    /// - `defaultValueLen`: length of default value
+    ///
+    pub fn NT_SetDefaultBooleanArray(
+        pubentry: NT_Handle,
+        defaultValue: *const NT_Bool,
+        defaultValueLen: usize,
+    ) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    /// - `len`: length of returned value (output)
+    ///
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetBooleanArray(
+        subentry: NT_Handle,
+        defaultValue: *const NT_Bool,
+        defaultValueLen: usize,
+        len: *mut usize,
+    ) -> *mut NT_Bool;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicBooleanArray(
+        subentry: NT_Handle,
+        defaultValue: *const NT_Bool,
+        defaultValueLen: usize,
+        value: *mut NT_TimestampedBooleanArray,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicBooleanArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedBooleanArray(value: *mut NT_TimestampedBooleanArray);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueBooleanArray(
+        subentry: NT_Handle,
+        len: *mut usize,
+    ) -> *mut NT_TimestampedBooleanArray;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueBooleanArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueBooleanArray(arr: *mut NT_TimestampedBooleanArray, len: usize);
+    /// Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    /// - `len`: length of value
+    ///
+    pub fn NT_SetIntegerArray(
+        pubentry: NT_Handle,
+        time: i64,
+        value: *const i64,
+        len: usize,
+    ) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    /// - `defaultValueLen`: length of default value
+    ///
+    pub fn NT_SetDefaultIntegerArray(
+        pubentry: NT_Handle,
+        defaultValue: *const i64,
+        defaultValueLen: usize,
+    ) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    /// - `len`: length of returned value (output)
+    ///
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetIntegerArray(
+        subentry: NT_Handle,
+        defaultValue: *const i64,
+        defaultValueLen: usize,
+        len: *mut usize,
+    ) -> *mut i64;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicIntegerArray(
+        subentry: NT_Handle,
+        defaultValue: *const i64,
+        defaultValueLen: usize,
+        value: *mut NT_TimestampedIntegerArray,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicIntegerArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedIntegerArray(value: *mut NT_TimestampedIntegerArray);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueIntegerArray(
+        subentry: NT_Handle,
+        len: *mut usize,
+    ) -> *mut NT_TimestampedIntegerArray;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueIntegerArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueIntegerArray(arr: *mut NT_TimestampedIntegerArray, len: usize);
+    /// Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    /// - `len`: length of value
+    ///
+    pub fn NT_SetFloatArray(
+        pubentry: NT_Handle,
+        time: i64,
+        value: *const f32,
+        len: usize,
+    ) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    /// - `defaultValueLen`: length of default value
+    ///
+    pub fn NT_SetDefaultFloatArray(
+        pubentry: NT_Handle,
+        defaultValue: *const f32,
+        defaultValueLen: usize,
+    ) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    /// - `len`: length of returned value (output)
+    ///
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetFloatArray(
+        subentry: NT_Handle,
+        defaultValue: *const f32,
+        defaultValueLen: usize,
+        len: *mut usize,
+    ) -> *mut f32;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicFloatArray(
+        subentry: NT_Handle,
+        defaultValue: *const f32,
+        defaultValueLen: usize,
+        value: *mut NT_TimestampedFloatArray,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicFloatArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedFloatArray(value: *mut NT_TimestampedFloatArray);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueFloatArray(
+        subentry: NT_Handle,
+        len: *mut usize,
+    ) -> *mut NT_TimestampedFloatArray;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueFloatArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueFloatArray(arr: *mut NT_TimestampedFloatArray, len: usize);
+    /// Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    /// - `len`: length of value
+    ///
+    pub fn NT_SetDoubleArray(
+        pubentry: NT_Handle,
+        time: i64,
+        value: *const f64,
+        len: usize,
+    ) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    /// - `defaultValueLen`: length of default value
+    ///
+    pub fn NT_SetDefaultDoubleArray(
+        pubentry: NT_Handle,
+        defaultValue: *const f64,
+        defaultValueLen: usize,
+    ) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    /// - `len`: length of returned value (output)
+    ///
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetDoubleArray(
+        subentry: NT_Handle,
+        defaultValue: *const f64,
+        defaultValueLen: usize,
+        len: *mut usize,
+    ) -> *mut f64;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicDoubleArray(
+        subentry: NT_Handle,
+        defaultValue: *const f64,
+        defaultValueLen: usize,
+        value: *mut NT_TimestampedDoubleArray,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicDoubleArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedDoubleArray(value: *mut NT_TimestampedDoubleArray);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueDoubleArray(
+        subentry: NT_Handle,
+        len: *mut usize,
+    ) -> *mut NT_TimestampedDoubleArray;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueDoubleArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueDoubleArray(arr: *mut NT_TimestampedDoubleArray, len: usize);
+    /// Publish a new value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `time`: timestamp; 0 indicates current NT time should be used
+    /// - `value`: value to publish
+    /// - `len`: length of value
+    ///
+    pub fn NT_SetStringArray(
+        pubentry: NT_Handle,
+        time: i64,
+        value: *const WPI_String,
+        len: usize,
+    ) -> NT_Bool;
+    ///  Publish a default value.
+    /// On reconnect, a default value will never be used in preference to a
+    /// published value.
+    ///
+    /// # Parameters
+    ///
+    /// - `pubentry`: publisher or entry handle
+    /// - `defaultValue`: default value
+    /// - `defaultValueLen`: length of default value
+    ///
+    pub fn NT_SetDefaultStringArray(
+        pubentry: NT_Handle,
+        defaultValue: *const WPI_String,
+        defaultValueLen: usize,
+    ) -> NT_Bool;
+    ///  Get the last published value.
+    /// If no value has been published, returns the passed defaultValue.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    /// - `len`: length of returned value (output)
+    ///
+    ///
+    /// # Returns
+    ///
+    /// value
+    pub fn NT_GetStringArray(
+        subentry: NT_Handle,
+        defaultValue: *const WPI_String,
+        defaultValueLen: usize,
+        len: *mut usize,
+    ) -> *mut WPI_String;
+    ///  Get the last published value along with its timestamp.
+    /// If no value has been published, returns the passed defaultValue and a
+    /// timestamp of 0.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `defaultValue`: default value to return if no value has been published
+    /// - `defaultValueLen`: length of default value
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value (output)
+    pub fn NT_GetAtomicStringArray(
+        subentry: NT_Handle,
+        defaultValue: *const WPI_String,
+        defaultValueLen: usize,
+        value: *mut NT_TimestampedStringArray,
+    );
+    /// Disposes a timestamped value (as returned by NT_GetAtomicStringArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `value`: timestamped value
+    pub fn NT_DisposeTimestampedStringArray(value: *mut NT_TimestampedStringArray);
+    /// Get an array of all value changes since the last call to ReadQueue.
+    /// Also provides a timestamp for each value.
+    ///
+    /// # Note
+    ///
+    /// The \"poll storage\" subscribe option can be used to set the queue
+    ///     depth.
+    ///
+    /// # Parameters
+    ///
+    /// - `subentry`: subscriber or entry handle
+    /// - `len`: length of returned array (output)
+    ///
+    /// # Returns
+    ///
+    /// Array of timestamped values; NULL if no new changes have
+    ///     been published since the previous call.
+    pub fn NT_ReadQueueStringArray(
+        subentry: NT_Handle,
+        len: *mut usize,
+    ) -> *mut NT_TimestampedStringArray;
+    ///  Frees a timestamped array of values (as returned by NT_ReadQueueStringArray).
+    ///
+    /// # Parameters
+    ///
+    /// - `arr`: array
+    /// - `len`: length of array
+    pub fn NT_FreeQueueStringArray(arr: *mut NT_TimestampedStringArray, len: usize);
 }
