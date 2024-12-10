@@ -5,7 +5,8 @@ use std::{
 };
 
 use bitflags::bitflags;
-use ntcore_sys::{NT_Now, NT_Type, NT_Value};
+use ntcore_sys::{NT_Now, NT_PubSubOptions, NT_Type, NT_Value};
+use typed_builder::TypedBuilder;
 
 /// A monotonic clock timestamp that is used to timestamp network tables values.
 /// Instants have microsecond precision.
@@ -272,5 +273,70 @@ bitflags! {
         const PERSISTENT = 1;
         const RETAINED = 2;
         const UNCACHED = 4;
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, TypedBuilder)]
+pub struct PubSubOptions {
+    /// Defaults to 1 if [`Self::send_all_updates`] is true, 20 otherwise.
+    #[builder(default = None, setter(strip_option))]
+    pub queue_length: Option<u32>,
+    /// How frequently changes should be sent over the network.
+    #[builder(default = Duration::from_millis(100))]
+    pub update_interval: Duration,
+    /// Send all value changes over the network
+    #[builder(default)]
+    pub send_all_updates: bool,
+    /// If true, duplicate value changes will be ignored.
+    #[builder(default = true)]
+    pub ignore_duplicates: bool,
+}
+impl Default for PubSubOptions {
+    fn default() -> Self {
+        Self::builder().build()
+    }
+}
+impl PubSubOptions {
+    pub fn new(queue_length: Option<u32>, update_interval: Duration, send_all_updates: bool, ignore_duplicates: bool) -> Self {
+        Self {
+            queue_length,
+            update_interval,
+            send_all_updates,
+            ignore_duplicates,
+        }
+    }
+}
+
+impl From<PubSubOptions> for NT_PubSubOptions {
+    fn from(options: PubSubOptions) -> Self {
+        let queue_length = options.queue_length.unwrap_or(0);
+        let update_interval = options.update_interval.as_secs_f64();
+        let send_all_updates = options.send_all_updates.into();
+        let keep_duplicates = (!options.ignore_duplicates).into();
+
+        Self {
+            structSize: std::mem::size_of::<NT_PubSubOptions>() as _,
+            pollStorage: queue_length,
+            periodic: update_interval,
+            excludePublisher: 0,
+            sendAll: send_all_updates,
+            topicsOnly: 0,
+            prefixMatch: 0,
+            keepDuplicates: keep_duplicates,
+            disableRemote: 0,
+            disableLocal: 0,
+            excludeSelf: 0,
+            hidden: 0,
+        }
+    }
+}
+impl From<NT_PubSubOptions> for PubSubOptions {
+    fn from(options: NT_PubSubOptions) -> Self {
+        Self {
+            queue_length: Some(options.pollStorage),
+            update_interval: Duration::from_secs_f64(options.periodic),
+            send_all_updates: options.sendAll != 0,
+            ignore_duplicates: options.keepDuplicates == 0,
+        }
     }
 }

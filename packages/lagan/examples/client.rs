@@ -32,6 +32,6 @@ fn main() {
         info!("{:?}", sin.value());
         foo.set_value_bool(i % 2 == 0).unwrap();
         info!("{:?}", foo.value());
-        sleep(std::time::Duration::from_millis(200));
+        sleep(std::time::Duration::from_millis(100));
     }
 }

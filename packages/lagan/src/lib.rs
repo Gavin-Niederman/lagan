@@ -4,26 +4,22 @@ use entry::Entry;
 use log::{log, Level};
 use nt_types::Value;
 use ntcore_sys::{
-    NT_Event, NT_GetEntry, NT_GetTopic, NT_Inst, NT_LogLevel, NT_LogMessage, WPI_String
+    NT_Event, NT_GetEntry, NT_GetTopic, NT_Inst, NT_LogLevel, NT_LogMessage, WPI_String,
 };
 use topic::Topic;
 
 pub mod client;
+pub mod entry;
 pub mod nt_types;
 pub mod server;
-pub mod entry;
 pub mod topic;
 
 pub mod prelude {
     pub use crate::{
         client::Client,
+        nt_types::{Value, ValueFlags, ValueType},
         server::Server,
-        nt_types::{
-            Value,
-            ValueFlags,
-        },
-        Instance,
-        NetworkTablesVersion
+        Instance, NetworkTablesVersion,
     };
 }
 
