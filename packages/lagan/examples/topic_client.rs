@@ -20,11 +20,13 @@ fn main() {
 
     let topic = client.topic("/sin");
     let topic_subscriber = topic.subscribe(ValueType::F64, "double", Default::default());
+    let topic2 = client.topic("/iCanPublish");
+    let topic_publisher = topic2.publish(ValueType::F64, "double", PubSubOptions::default());
 
     let entry = client.entry("/sinRecieved");
 
     async {
-        loop {
+        for i in 0.. {
             info!("topic is of type: {:?}", topic.value_type());
             info!("topic exists? {:?}", topic.is_existant());
             if topic.is_existant() {
@@ -32,6 +34,7 @@ fn main() {
                 info!("latest update: {:?}", latest);
                 entry.set_value_f64(latest.unwrap()).unwrap();
             }
+            topic_publisher.set_value_f64(3.14 + i as f64).unwrap();
             sleep(Duration::from_millis(200));
         }
     }

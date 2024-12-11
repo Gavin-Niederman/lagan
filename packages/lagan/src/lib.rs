@@ -2,10 +2,11 @@ use std::{ffi::CString, fmt::Debug};
 
 use entry::Entry;
 use log::{log, Level};
-use nt_types::Value;
+use nt_types::{Value, ValueType};
 use ntcore_sys::{
     NT_Event, NT_GetEntry, NT_GetTopic, NT_Inst, NT_LogLevel, NT_LogMessage, WPI_String,
 };
+use snafu::Snafu;
 use topic::Topic;
 
 pub mod client;
@@ -109,4 +110,22 @@ pub trait Instance {
     ///
     /// Caller must ensure that the returned handle is only used while the instance is valid.
     unsafe fn handle(&self) -> NT_Inst;
+}
+
+
+/// Errors that can occur when interacting with NetworkTables.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Snafu)]
+pub enum NetworkTablesError {
+    /// Attempted to set an entry or topic or read a topic with a value of a different type than it currently is.
+    #[snafu(display("Attempted to set an entry or topic or read a topic with a value of type {given_type:?} while it was of type {current_type:?}."))]
+    InvalidType {
+        current_type: ValueType,
+        given_type: ValueType,
+    },
+
+    /// Attempted to set the flags on an unassigned entry.
+    UnassignedFlags,
+
+    /// Attempted to set an entry or topic to a value of unassigned.
+    SetToUnassigned
 }

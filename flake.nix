@@ -11,7 +11,6 @@
         devShell = pkgs.mkShell {
           buildInputs = with pkgs; [
             cmake
-
             libcxx
             openssl
             pkg-config

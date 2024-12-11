@@ -3,10 +3,10 @@ use std::ffi::CString;
 use ntcore_sys::{
     NT_Entry, NT_EntryFlags, NT_GetEntryType, NT_GetEntryValue, NT_Now, NT_Release, NT_SetEntryFlags, NT_SetEntryValue, NT_Value, NT_ValueData, NT_ValueDataArray, WPI_String
 };
-use snafu::{ensure, Snafu};
+use snafu::ensure;
 
 use crate::{
-    nt_types::{ValueFlags, RawValue, ValueType}, Instance, Value
+    nt_types::{RawValue, ValueFlags, ValueType}, Instance, NetworkTablesError, SetToUnassignedSnafu, UnassignedFlagsSnafu, Value
 };
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -38,7 +38,7 @@ macro_rules! typed_value_setter {
             /// # Errors
             ///
             /// - [`NetworkTablesEntryError::InvalidType`] if the type of the entry is not of the specified type.
-            pub fn $ident(&self, value: $ty) -> Result<(), EntryError> {
+            pub fn $ident(&self, value: $ty) -> Result<(), NetworkTablesError> {
                 self.set_value(Value::$variant(value))
             }
         )*
@@ -68,13 +68,13 @@ impl<I: Instance + ?Sized> Entry<'_, I> {
         unsafe { NT_GetEntryType(self.handle()) }.into()
     }
 
-    pub fn set_value(&self, value: Value) -> Result<(), EntryError> {
+    pub fn set_value(&self, value: Value) -> Result<(), NetworkTablesError> {
         let current_value = self.raw_value();
         let current_type = current_value.data.value_type();
 
         if current_type != ValueType::Unassigned && current_type != value.value_type()
         {
-            return Err(EntryError::InvalidType {
+            return Err(NetworkTablesError::InvalidType {
                 current_type,
                 given_type: value.value_type(),
             });
@@ -108,7 +108,7 @@ impl<I: Instance + ?Sized> Entry<'_, I> {
         //Safety: This raw data cannot be used after the values it points to are dropped.
         //Safety: for this reason, the types that store pointers have to be used inside the match arms.
         let raw_value_data = match value {
-            Value::Unassigned => todo!(),
+            Value::Unassigned => return SetToUnassignedSnafu.fail(),
             Value::Bool(value) => NT_ValueData {
                 v_boolean: value as _,
             },
@@ -188,11 +188,11 @@ impl<I: Instance + ?Sized> Entry<'_, I> {
     /// # Errors
     ///
     /// - [`NetworkTablesEntryError::InvalidType`] if the type of the entry is not of the specified type.
-    pub fn set_value_string(&self, value: impl AsRef<str>) -> Result<(), EntryError> {
+    pub fn set_value_string(&self, value: impl AsRef<str>) -> Result<(), NetworkTablesError> {
         self.set_value(Value::String(value.as_ref().to_owned()))
     }
 
-    pub fn set_flags(&self, flags: ValueFlags) -> Result<(), EntryError> {
+    pub fn set_flags(&self, flags: ValueFlags) -> Result<(), NetworkTablesError> {
         ensure!(self.is_assigned(), UnassignedFlagsSnafu);
         unsafe {
             NT_SetEntryFlags(self.handle(), NT_EntryFlags::from_bits_retain(flags.bits()));
@@ -233,18 +233,4 @@ impl<I: Instance + ?Sized> Drop for Entry<'_, I> {
             NT_Release(self.handle());
         }
     }
-}
-
-/// Errors that can occur when interacting with a NetworkTables entry.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Snafu)]
-pub enum EntryError {
-    /// Attempted to set an entry to a value of a different type than it currently is.
-    #[snafu(display("Attempted to set an entry to a value of type {given_type:?} while it was of type {current_type:?}."))]
-    InvalidType {
-        current_type: ValueType,
-        given_type: ValueType,
-    },
-
-    /// Attempted to set the flags on an unassigned entry.
-    UnassignedFlags,
 }
