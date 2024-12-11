@@ -6,7 +6,7 @@ keywords = ["ntcore", "networktables", "frc", "wpilib"]
 categories = ["api-bindings", "external-ffi-bindings", "network-programming"]
 repository = "https://github.com/gavin-niederman/lagan"
 license = "MIT"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 [build-dependencies]
